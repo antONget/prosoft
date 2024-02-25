@@ -83,7 +83,7 @@ async def process_get_rest(message: Message) -> None:
             text += f'<b>{category}:</b>\n'
         for product in dict_rest[category]:
 
-            text += f'<i>{product}</i> {dict_rest[category][product]}\n'
+            text += f'<i>{product}</i> - {dict_rest[category][product]}\n'
 
         text += f'------------\n'
     await message.answer(text=text,
@@ -147,7 +147,7 @@ async def process_sheduler(bot: Bot) -> None:
             text += f'<b>{category}:</b>\n'
         for product in dict_rest[category]:
 
-            text += f'<i>{product}</i> {dict_rest[category][product]}\n'
+            text += f'<i>{product}</i> - {dict_rest[category][product]}\n'
         text += f'------------\n'
     for admin in config.tg_bot.admin_ids.split(','):
         await bot.send_message(chat_id=int(admin),
