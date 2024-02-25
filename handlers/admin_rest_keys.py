@@ -50,7 +50,7 @@ async def process_get_rest(message: Message) -> None:
                             count_key += 1
 
                     if 'По телефону:' in key:
-                        dict_rest[product]['online'] = count_key
+                        dict_rest[product]['Online'] = count_key
                         count_key = 0
                 dict_rest[product]['По телефону'] = count_key
             else:
@@ -59,7 +59,7 @@ async def process_get_rest(message: Message) -> None:
                         if k == '✅':
                             count_key += 1
                     if 'С привязкой:' in key:
-                        dict_rest[product]['online'] = count_key
+                        dict_rest[product]['Online'] = count_key
                         count_key = 0
                     if 'По телефону:' in key:
                         dict_rest[product]['С привязкой'] = count_key
@@ -70,7 +70,8 @@ async def process_get_rest(message: Message) -> None:
     for category in dict_rest:
         # print(category, dict_rest[category])
         if category == 'Office 365':
-            text += f'<b>{category}:</b>  {dict_rest[category]}\n'
+            text += f'<b>{category}:</b>  {dict_rest[category]}\n' \
+                    f'------------\n'
             continue
         if category == 'Office 2013 Professional Plus - Online:' or\
                 category == 'Windows 7 Pro Retail - Ключ на 1 ПК (По телефону)' or\
@@ -82,8 +83,9 @@ async def process_get_rest(message: Message) -> None:
             text += f'<b>{category}:</b>\n'
         for product in dict_rest[category]:
 
-            text += f'\t\t<i>{product}</i> {dict_rest[category][product]}\n'
+            text += f'<i>{product}</i> {dict_rest[category][product]}\n'
 
+        text += f'------------\n'
     await message.answer(text=text,
                          parse_mode='html')
 
@@ -113,7 +115,7 @@ async def process_sheduler(bot: Bot) -> None:
                             count_key += 1
 
                     if 'По телефону:' in key:
-                        dict_rest[product]['online'] = count_key
+                        dict_rest[product]['Online'] = count_key
                         count_key = 0
                 dict_rest[product]['По телефону'] = count_key
             else:
@@ -122,7 +124,7 @@ async def process_sheduler(bot: Bot) -> None:
                         if k == '✅':
                             count_key += 1
                     if 'С привязкой:' in key:
-                        dict_rest[product]['online'] = count_key
+                        dict_rest[product]['Online'] = count_key
                         count_key = 0
                     if 'По телефону:' in key:
                         dict_rest[product]['С привязкой'] = count_key
@@ -132,7 +134,8 @@ async def process_sheduler(bot: Bot) -> None:
     for category in dict_rest:
 
         if category == 'Office 365':
-            text += f'<b>{category}:</b>  {category}\n'
+            text += f'<b>{category}:</b>  {category}\n' \
+                    f'------------\n'
             continue
         if category == 'Office 2013 Professional Plus - Online:' or\
                 category == 'Windows 7 Pro Retail - Ключ на 1 ПК (По телефону)' or\
@@ -144,7 +147,8 @@ async def process_sheduler(bot: Bot) -> None:
             text += f'<b>{category}:</b>\n'
         for product in dict_rest[category]:
 
-            text += f'\t\t<i>{product}</i> {dict_rest[category][product]}\n'
+            text += f'<i>{product}</i> {dict_rest[category][product]}\n'
+        text += f'------------\n'
     for admin in config.tg_bot.admin_ids.split(','):
         await bot.send_message(chat_id=int(admin),
                                text=text,
