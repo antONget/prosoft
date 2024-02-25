@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ostatli-telegram-bot",
+  "private_key_id": "6ec63b4a02122087a3b2400452b7b798c732dee0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC+ZR/J7lPejSD7\nXQMJzIGlNVijfuK9s1IBuBPj8d+zRFiPL+yTE096inPFTfN/dJ8b2SokDkdUKWcX\n931Ni0xpoPjQYcnXmo+Ci5HtqTOw6Wp75jtfObsyc3pLXmR4TBrc7ad6Ycj1ZXXV\nc69y9k5Dc4KS3EYcq2oy6mSV5B88jRRNj1BG4GDIysIoXM1BwEaCJAAvJ7KJuKz9\n3qFI6+JPiL1FtA9xg5Ccg+nou9ClTuydw7bqUSV5agyYHgoCyVmErTk2A5h3FDBU\n5X5SJQbDw7om4wQbS+d0DP8Cb0c2uYbn0Lpw3P8HgwBdakEBY0OwfCmU3ecDoAF6\n0BnTU8krAgMBAAECggEAFvQgEfsul00SZdt/y0Whd6ZnykY41b/xqg1kMH3vhzA9\nMP4JGm4gjdh1Pps4OOx5ZiUXRIOIK+hV6njG3XtmufFTLeQsLlcO6CElda6JcdGi\nKc/G5qMSI3Hyk3WMzUf3kR0BrOpvDM6vlw08YLK7GrypSEVQGpK72emSONPoxCbU\nn30ascK+jwZNOD6zXJrYe3l6MqcSGbcLQA9U4vKV9UkvFOWqgmIqA8KB7F97QidM\nCryxApwA4mm2GMkOWUwVfHc0Ln4ifuFCmx0HnabABVLSfXpcNkEQB/IfL3jaQweM\nGHcmxG6SZzKhTOdqOBy7Hu2pPYTrqQxF6tzqhr5BSQKBgQDuus/ud9+zMyk3L2KU\nD35xHOIw3B8Tg7seDoXaiXR5EQ+/f+WjYAw8aMNB2mSQbkKFW7I/slQMlXz/sYkX\nSNBE2ub5yQzU/e+ZDP7vYX/MoVETz5Vv5G3Uy3RKgCnePoGY9ocSSPHXWTwsIGDc\nW7nRKtq6KrsP8BcRjUxYzQUXfQKBgQDMKyuo/3XUYD0f1lfoR/3SNbnmADVHGBkR\nYLs2U+mQEIYBLBJrKM4u2KgTDEEJJS1yLRS/EwTK642lO+N71fxcOBbnud+hMUkX\nUT5wREKsiju0KqCAyUdNTdYiEdasE2i4pH1L5DjTUO2tiMyjKfTm0fEi2GQv42vw\ngbCNSpVTxwKBgHDLmXUt9GciFCY74FLeozpkkEbPqms5AY8pA3uHGJ4fPpaXonO3\n7PAZ+6/AtWU8g3epJKZN5sJvWzkgtAppX+Y4m4uHv+Ve+fcRmd6W7aBM1BcNLKlK\nf85cNt0Ag0e7ttYEHTu5dXLveavLvJhBSqGWovP1Pp9ALFYhseH/NJmtAoGBAL1a\nKHLjAffGjcnyM7NE2V3U4CU0+jSGX/FjAh3/svUerfl2U1q5DIgb/b00tzhxF3X1\n43DWhbJgxgyBv5fBPPyWNIATPhk0KXKLsdnTJPb6eSa+Bf+LLSq/zqHoY21RzuS4\nAVCaSC2Lt/MilY+ZwP01pmtHv5s+U4RJ82EG0/lPAoGAIIfm62/bYWW2HsTM1e5b\nQnDFKTZqg7VLleZ57GqXw6t0CAZu5rezAJfaJOLR5bz9vIeYSu+k/gme92E+MFME\n21nrxamqDPPIZ1PQn5RevPP4NqqWnWxarrIrd7sRZthff6M3vxDipaZmjC6c9PZc\n6q0x31Ge9MGrAxavJ2F8LBk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "prosoft@ostatli-telegram-bot.iam.gserviceaccount.com",
+  "client_id": "116827562292950207810",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/prosoft%40ostatli-telegram-bot.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
