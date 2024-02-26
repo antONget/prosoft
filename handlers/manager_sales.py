@@ -23,7 +23,7 @@ user_dict = {}
 
 
 # Статитстика - период статистики
-@router.message(F.text == 'Продажи', lambda message: check_user(message.chat.id))
+@router.message(F.text == 'Отчет по продажам', lambda message: check_user(message.chat.id))
 async def process_get_statistic_salesperiod(message: Message) -> None:
     logging.info(f'process_get_statistic_salesperiod: {message.chat.id}')
     await message.answer(text="Выберите период для получения отчета о продажах",
