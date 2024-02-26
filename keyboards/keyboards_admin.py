@@ -8,7 +8,7 @@ def keyboards_superadmin():
     logging.info("keyboards_superadmin")
     button_1 = KeyboardButton(text='Получить ключ')
     # button_2 = KeyboardButton(text='Статистика')
-    button_3 = KeyboardButton(text='Продажи')
+    button_3 = KeyboardButton(text='Отчет по продажам')
     button_4 = KeyboardButton(text='Менеджер')
     button_5 = KeyboardButton(text='Остаток')
     keyboard = ReplyKeyboardMarkup(
@@ -23,7 +23,7 @@ def keyboards_manager():
     logging.info("keyboards_superadmin")
     button_1 = KeyboardButton(text='Получить ключ')
     # button_2 = KeyboardButton(text='Статистика')
-    button_3 = KeyboardButton(text='Продажи')
+    button_3 = KeyboardButton(text='Отчет по продажам')
     keyboard = ReplyKeyboardMarkup(
         keyboard=[[button_1], [button_3]],
         resize_keyboard=True

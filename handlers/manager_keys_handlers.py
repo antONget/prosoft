@@ -308,7 +308,7 @@ async def process_select_key_office365(callback: CallbackQuery, category: str):
     for key in list_key_product:
         if '✅' in key and key[0] != '':
             print(key[0])
-            cost = get_cost_product(product='Office 365')
+            cost = get_cost_product(product='Office 365', typelink='None')
             await get_key_product_finish(callback=callback, category=category, product=category, key_product=key[0],
                                          id_row_key=key[-1], cost=cost, type_give='online')
             break
@@ -324,7 +324,7 @@ async def process_select_key_visio_and_project(callback: CallbackQuery, category
     for key in list_key_product:
         if '✅' in key and key[1] != '':
             print(key[1])
-            cost = get_cost_product(product=key[0])
+            cost = get_cost_product(product=key[0], typelink='online')
             await get_key_product_finish(callback=callback, category=category, product=key[0],
                                          key_product=key[1], id_row_key=key[-1],
                                          id_product_in_category=id_product_in_category, cost=cost, type_give='online')

@@ -71,6 +71,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
     text = ''
     dict_order_product = {}
     num = 0
+    list_text = []
     for order in list_orders[1:]:
         print(order)
         if user_name_manager in order:
@@ -86,9 +87,19 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 dict_order_product[order[7]] += 1
                 count += int(order[5].split('.')[0])
                 text += f"{num}) Номер заказа: {order[0]} дата заказа {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
-    await callback.message.answer(text=f'<b>Отчет о продажах менеджера:</b>\n'
-                                       f'{text}',
-                                  parse_mode='html')
+                if num > 39:
+                    num = 0
+                    list_text.append(text)
+                    text = ''
+    if list_text:
+        for text_message in list_text:
+            await callback.message.answer(text=f'<b>Отчет о продажах компании:</b>\n'
+                                               f'{text_message}\n\n',
+                                          parse_mode='html')
+    else:
+        await callback.message.answer(text=f'<b>Отчет о продаж компании:</b>\n'
+                                           f'{text}\n\n',
+                                      parse_mode='html')
     total_text = ''
     total_order = 0
     for key_product, value_product in dict_order_product.items():
@@ -117,6 +128,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     text = ''
     dict_order_product = {}
     num = 0
+    list_text = []
     for order in list_orders[1:]:
         print(order)
         list_date2 = order[1].split('/')
@@ -131,9 +143,19 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
             dict_order_product[order[7]] += 1
             count += int(order[5].split('.')[0])
             text += f"{num}) Номер заказа: {order[0]} дата заказа {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
-    await callback.message.answer(text=f'<b>Отчет о продаж компании:</b>\n'
-                                       f'{text}\n\n',
-                                  parse_mode='html')
+            if num > 39:
+                num = 0
+                list_text.append(text)
+                text = ''
+    if list_text:
+        for text_message in list_text:
+            await callback.message.answer(text=f'<b>Отчет о продажах компании:</b>\n'
+                                               f'{text_message}\n\n',
+                                          parse_mode='html')
+    else:
+        await callback.message.answer(text=f'<b>Отчет о продаж компании:</b>\n'
+                                           f'{text}\n\n',
+                                      parse_mode='html')
     total_text = ''
     total_order = 0
     for key_product, value_product in dict_order_product.items():

@@ -1,9 +1,11 @@
 import gspread
 import logging
 
-gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
+# gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
+gp = gspread.service_account(filename='services/test.json')
+
 #Open Google spreadsheet
-gsheet = gp.open('Ключи')
+gsheet = gp.open('prosoft_1')
 
 
 # select worksheet
@@ -77,22 +79,26 @@ def get_key_product_office365(category: str) -> list:
 
 
 def get_cost_product(product: str, typelink: str = 'None') -> str:
-    logging.info(f'get_cost_product')
+    logging.info(f'get_cost_product, {product}:{typelink}')
     values = cost_sheet.get_all_values()
     cost_key = 0
+    product = product.strip()
     for row, item in enumerate(values):
+        print(item[:2], product in item[:3], 'online' in typelink, item[1] == 'online')
         if product in item[:3] and 'online' in typelink and item[1] == 'online':
-            print(item[4])
+            print(1, item[4])
             cost_key = item[4]
-        if product in item[:3] and 'phone' in typelink and item[1] == 'phone':
-            print(item[4])
+        elif product in item[:3] and 'phone' in typelink and item[1] == 'phone':
+            print(2, item[4])
             cost_key = item[4]
-        if product in item[:3] and 'linking' in typelink and item[1] == 'linking':
-            print(item[4])
+        elif product in item[:3] and 'linking' in typelink and item[1] == 'linking':
+            print(3, item[4])
             cost_key = item[4]
-        if product in item[:3]:
-            print(item[4])
-            cost_key = item[4]
+        else:
+            if product == 'Office 365' and item[1] == 'None':
+                cost_key = item[4]
+                print(4, item[4])
+    print(cost_key)
     return cost_key
 
 

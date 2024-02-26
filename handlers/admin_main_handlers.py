@@ -34,7 +34,7 @@ async def process_start_command_superadmin(message: Message, bot: Bot) -> None:
     """
     create_table_users()
     add_super_admin(id_admin=message.chat.id, user_name=message.from_user.username)
-    await message.answer_sticker(sticker='CAACAgIAAxkBAAMGZdsqEf4QhJm2JYtIy9KrTYs8aBUAAtY8AAIbsthKlKy5IzD6RCM0BA')
+    # await message.answer_sticker(sticker='CAACAgIAAxkBAAMGZdsqEf4QhJm2JYtIy9KrTYs8aBUAAtY8AAIbsthKlKy5IzD6RCM0BA')
     await message.answer(text=f"Привет, {message.from_user.first_name} 👋\n"
                               f"Здесь можно оформить заказ на ключи, оформить замену на ключи,"
                               f" получить отчёты менеджера.",
