@@ -93,6 +93,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                     num_mes = 0
                     list_text.append(text)
                     text = ''
+    list_text.append(text)
     if list_text:
         for text_message in list_text:
             await callback.message.answer(text=f'<b>Отчет о продажах компании:</b>\n'
@@ -151,6 +152,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                 num_mes = 0
                 list_text.append(text)
                 text = ''
+    list_text.append(text)
     if list_text:
         for text_message in list_text:
             await callback.message.answer(text=f'<b>Отчет о продажах компании:</b>\n'
