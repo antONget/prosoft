@@ -58,7 +58,7 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                                   f'Категория {info_order[6]} - продукт {info_order[7]}',
                              parse_mode='html')
         new_key = ''
-        if info_order[6] == 'office365':
+        if info_order[6] == 'Office 365':
             list_key = get_key_product_office365(info_order[6])
             for key in list_key:
                 print(key)
