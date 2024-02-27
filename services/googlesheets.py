@@ -1,12 +1,12 @@
 import gspread
 import logging
 
-# gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
-gp = gspread.service_account(filename='services/test.json')
+gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
+# gp = gspread.service_account(filename='services/test.json')
 
 #Open Google spreadsheet
 gsheet = gp.open('prosoft_1')
-# gsheet = gp.open('Ключи')
+gsheet = gp.open('Ключи')
 
 
 # select worksheet
