@@ -64,6 +64,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                 print(key)
                 if key[1] == '✅':
                     new_key = key[0]
+                    update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                           id_key=key[-1])
                     break
         elif info_order[6] == 'office' or info_order[6] == 'windows':
             list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
@@ -90,39 +92,47 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                 for key in dict_key_office["list_key_online"]:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
                         break
             if type_give == 'phone':
                 # print(dict_key_office["list_key_online"])
                 for key in dict_key_office["list_key_phone"]:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
                         break
             if type_give == 'linking':
                 # print(dict_key_office["list_key_online"])
                 for key in dict_key_office["list_key_linking"]:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
                         break
 
-            elif info_order[6] == 'visio' or info_order[6] == 'project':
-                list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
-                for key in list_key:
-                    if '✅' in key and key[1] != '':
-                        new_key = key[1]
-                        break
+        elif info_order[6] == 'visio' or info_order[6] == 'project':
+            list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
+            for key in list_key:
+                if '✅' in key and key[1] != '':
+                    new_key = key[1]
+                    update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                           id_key=key[-1])
+                    break
 
         await message.answer(text=f'Новый ключ: <code>{new_key}</code>', parse_mode='html')
         update_row_key_product_new_key(new_key=new_key, id_order=message.text)
-        if info_order[6] == 'Office 365':
-            list_key_product = get_key_product_office365(category=info_order[6])
-        else:
-            list_key_product = get_key_product(category=info_order[6], product=int(info_order[9]))
-        print(list_key_product)
-        for key in list_key_product:
-            if '✅' in key and key[1] != '':
-                print(key[1])
-                update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]), id_key=key[-1])
-                break
+        # if info_order[6] == 'Office 365':
+        #     list_key_product = get_key_product_office365(category=info_order[6])
+        # else:
+        #     list_key_product = get_key_product(category=info_order[6], product=int(info_order[9]))
+        # print(list_key_product)
+        # for key in list_key_product:
+        #     if '✅' in key and key[1] != '':
+        #         print(key[1])
+        #         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]), id_key=key[-1])
+        #         break
         await state.set_state(default_state)
     else:
         await message.answer(text="Заказ не найден, повторите ввод")
@@ -142,6 +152,11 @@ async def process_select_category(callback: CallbackQuery) -> None:
 async def process_select_product(callback: CallbackQuery) -> None:
     logging.info(f'process_select_product: {callback.message.chat.id}')
     list_product = get_list_product(callback.data.split('_')[1])
+    print(list_product)
+    if callback.data.split('_')[1] == 'windows':
+        list_product = list_product[:2]
+    if callback.data.split('_')[1] == 'office':
+        list_product = list_product[:3]
     await callback.message.edit_text(text='Выберите продукт для получения ключа',
                                      reply_markup=keyboards_list_product(list_product=list_product,
                                                                          category=callback.data.split('_')[1]))
