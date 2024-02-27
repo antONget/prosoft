@@ -113,6 +113,16 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
 
         await message.answer(text=f'Новый ключ: <code>{new_key}</code>', parse_mode='html')
         update_row_key_product_new_key(new_key=new_key, id_order=message.text)
+        if info_order[6] == 'Office 365':
+            list_key_product = get_key_product_office365(category=info_order[6])
+        else:
+            list_key_product = get_key_product(category=info_order[6], product=int(info_order[9]))
+        print(list_key_product)
+        for key in list_key_product:
+            if '✅' in key and key[1] != '':
+                print(key[1])
+                update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]), id_key=key[-1])
+                break
         await state.set_state(default_state)
     else:
         await message.answer(text="Заказ не найден, повторите ввод")
