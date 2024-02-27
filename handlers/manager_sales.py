@@ -80,9 +80,9 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
             date2 = date(int(list_date2[2]), int(list_date2[0]), int(list_date2[1]))
             delta = (date1 - date2).days
             print(delta)
-            if not order[7] in dict_order_product.keys():
-                dict_order_product[order[7]] = 0
             if delta < period:
+                if not order[7] in dict_order_product.keys():
+                    dict_order_product[order[7]] = 0
                 print(order[5])
                 num += 1
                 num_mes += 1
