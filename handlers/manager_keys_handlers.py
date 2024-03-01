@@ -10,7 +10,7 @@ from module.data_base import add_token, get_list_users, get_user, delete_user
 from datetime import datetime
 
 from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_category_keys, keyboards_list_product, \
-    keyboards_list_type_windows, keyboards_list_type_office
+    keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_key
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key
@@ -363,6 +363,8 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
     logging.info(f'get_key_product_finish: {callback.message.chat.id}')
     token_order = str(token_urlsafe(8))
     current_date = datetime.now()
+    product_list = product.split()
+    product = ' '.join(product_list)
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
     append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
                  username=callback.from_user.username, key=key_product, cost=cost, category=category, product=product,
@@ -371,6 +373,7 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
                                        f'{key_product}\n'
                                        f'Номер заказа: {token_order}</code>\n'
                                        f'отправьте его заказчику',
+                                  # reply_markup=keyboards_cancel_key(),
                                   parse_mode='html')
     update_row_key_product(category=category, id_product_in_category=id_product_in_category, id_key=id_row_key)
 

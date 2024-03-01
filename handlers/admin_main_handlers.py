@@ -1,12 +1,12 @@
 import logging
 
 from aiogram import Router, Bot
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, or_f
 from aiogram.types import Message
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from filter.admin_filter import chek_admin
+from filter.admin_filter import chek_admin,chek_admin_1
 from filter.user_filter import check_user
-from module.data_base import create_table_users, add_super_admin, get_list_users, get_operator, update_operator
+from module.data_base import create_table_users, add_super_admin
 
 from keyboards.keyboards_admin import keyboards_superadmin, keyboards_manager
 import requests
@@ -24,7 +24,8 @@ def get_telegram_user(user_id, bot_token):
     return response.json()
 
 
-@router.message(CommandStart(), lambda message: chek_admin(message.chat.id))
+@router.message(CommandStart(), or_f(lambda message: chek_admin(message.chat.id),
+                lambda message: chek_admin_1(message.chat.id)))
 async def process_start_command_superadmin(message: Message, bot: Bot) -> None:
     logging.info("process_start_command")
     """
@@ -43,7 +44,7 @@ async def process_start_command_superadmin(message: Message, bot: Bot) -> None:
 
 @router.message(CommandStart(), lambda message: check_user(message.chat.id))
 async def process_start_command_admin(message: Message) -> None:
-    logging.info("process_start_command")
+    logging.info("process_start_command_admin")
     """
     Запуск бота администратором
     :param message: 

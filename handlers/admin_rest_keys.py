@@ -1,17 +1,8 @@
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery, Message
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup, default_state
-from aiogram.filters import StateFilter
+from aiogram.filters import or_f
 import logging
-from secrets import token_urlsafe
-import asyncio
-from module.data_base import add_token, get_list_users, get_user, delete_user
-from datetime import datetime
-import pprint
-from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_category_keys, keyboards_list_product, \
-    keyboards_list_type_windows, keyboards_list_type_office
-from filter.admin_filter import chek_admin
+from filter.admin_filter import chek_admin, chek_admin_1
 from services.googlesheets import dict_category, get_list_product, get_key_product, get_key_product_office365
 from config_data.config import Config, load_config
 
@@ -20,7 +11,8 @@ config: Config = load_config()
 
 
 # ОСТАТОК
-@router.message(F.text == 'Остаток', lambda message: chek_admin(message.chat.id))
+@router.message(F.text == 'Остаток', or_f(lambda message: chek_admin(message.chat.id),
+                lambda message: chek_admin_1(message.chat.id)))
 async def process_get_rest(message: Message) -> None:
     logging.info(f'process_get_rest: {message.chat.id}')
     dict_rest = {}
@@ -70,7 +62,7 @@ async def process_get_rest(message: Message) -> None:
     for category in dict_rest:
         # print(category, dict_rest[category])
         if category == 'Office 365':
-            text += f'<b>{category}:</b>  {dict_rest[category]}\n' \
+            text += f'<b>{category}:</b> {dict_rest[category]}\n' \
                     f'------------\n'
             continue
         if category == 'Office 2013 Professional Plus - Online:' or\
@@ -134,7 +126,7 @@ async def process_sheduler(bot: Bot) -> None:
     for category in dict_rest:
 
         if category == 'Office 365':
-            text += f'<b>{category}:</b>  {category}\n' \
+            text += f'<b>{category}:</b> {dict_rest[category]}\n' \
                     f'------------\n'
             continue
         if category == 'Office 2013 Professional Plus - Online:' or\

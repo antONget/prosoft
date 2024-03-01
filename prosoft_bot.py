@@ -3,7 +3,8 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
-from handlers import admin_main_handlers, admin_manager_handlers, admin_rest_keys, manager_statistic_handlers
+from handlers import admin_main_handlers, admin_manager_handlers, admin_rest_keys, manager_statistic_handlers, \
+    admin_edit_admin_list
 from handlers import user_auth_handler, manager_keys_handlers, manager_sales
 from handlers import other_handlers
 from handlers.admin_rest_keys import process_sheduler
@@ -37,6 +38,7 @@ async def main():
     dp.include_router(admin_main_handlers.router)
     dp.include_router(admin_manager_handlers.router)
     dp.include_router(admin_rest_keys.router)
+    dp.include_router(admin_edit_admin_list.router)
     dp.include_router(manager_statistic_handlers.router)
     dp.include_router(manager_keys_handlers.router)
     dp.include_router(manager_sales.router)

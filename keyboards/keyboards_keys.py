@@ -69,3 +69,10 @@ def keyboards_list_type_windows(category: str, product: int):
     button_back = InlineKeyboardButton(text='Назад', callback_data=f'pageback_productwindows')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_back]], )
     return keyboard
+
+
+def keyboards_cancel_key(category: str, product: int):
+    logging.info("keyboards_list_type")
+    button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'cansel_get_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]], )
+    return keyboard

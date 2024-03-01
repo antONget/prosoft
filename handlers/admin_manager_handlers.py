@@ -1,13 +1,13 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
-
+from aiogram.filters import or_f
 import logging
 import asyncio
 from module.data_base import add_token, get_list_users, get_user, delete_user
 from secrets import token_urlsafe
 from keyboards.keyboards_admin_manager import keyboards_del_users, keyboard_delete_user, keyboard_edit_list_user
-from filter.admin_filter import chek_admin
+from filter.admin_filter import chek_admin, chek_admin_1
 
 
 router = Router()
@@ -15,7 +15,8 @@ user_dict = {}
 
 
 # МЕНЕДЖЕР
-@router.message(F.text == 'Менеджер', lambda message: chek_admin(message.chat.id))
+@router.message(F.text == 'Менеджер', or_f(lambda message: chek_admin(message.chat.id),
+                lambda message: chek_admin_1(message.chat.id)))
 async def process_change_list_users(message: Message) -> None:
     logging.info(f'process_change_list_users: {message.chat.id}')
     """

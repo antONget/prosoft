@@ -111,28 +111,46 @@ def delete_user(telegram_id):
     db.commit()
 
 
-def set_operator(telegram_id):
-    """
-    Установить дежурного
-    :param telegram_id:
-    :return:
-    """
-    logging.info(f'set_operator')
-    sql.execute('UPDATE users SET operator = ? WHERE telegram_id = ?', (1, telegram_id))
+def get_list_notadmins() -> list:
+    logging.info(f'get_list_notadmins')
+    sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (0, 'username'))
+    list_notadmins = [row for row in sql.fetchall()]
+    return list_notadmins
+
+
+# АДМИНИСТРАТОРЫ - назначить пользователя администратором
+def set_admins(telegram_id):
+    logging.info(f'set_admins')
+    sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (1, telegram_id))
     db.commit()
 
 
-def update_operator():
-    logging.info(f'update_operator')
-    sql.execute('UPDATE users SET operator = ?', (0,))
+# АДМИНИСТРАТОРЫ - список администраторов
+def get_list_admins() -> list:
+    logging.info(f'get_list_admins')
+    sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (1, 'username'))
+    list_admins = [row for row in sql.fetchall()]
+    return list_admins
+
+
+# АДМИНИСТРАТОРЫ - разжаловать пользователя из администраторов
+def set_notadmins(telegram_id):
+    logging.info(f'set_notadmins')
+    sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (0, telegram_id))
     db.commit()
-
-
-def get_operator():
-    logging.info(f'get_operator')
-    list_operator = sql.execute('SELECT * FROM users WHERE operator = ?', (1,)).fetchall()
-    is_operator = [operator for operator in list_operator]
-    return is_operator
+#
+#
+# def update_operator():
+#     logging.info(f'update_operator')
+#     sql.execute('UPDATE users SET operator = ?', (0,))
+#     db.commit()
+#
+#
+# def get_operator():
+#     logging.info(f'get_operator')
+#     list_operator = sql.execute('SELECT * FROM users WHERE operator = ?', (1,)).fetchall()
+#     is_operator = [operator for operator in list_operator]
+#     return is_operator
 
 if __name__ == '__main__':
     db = sqlite3.connect('/Users/antonponomarev/PycharmProjects/PRO_SOFT/database.db', check_same_thread=False, isolation_level='EXCLUSIVE')
