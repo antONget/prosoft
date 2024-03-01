@@ -81,12 +81,14 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
             delta = (date1 - date2).days
             print(delta)
             if delta < period:
-                if not order[7] in dict_order_product.keys():
-                    dict_order_product[order[7]] = 0
+                product_list = order[7].split()
+                product = ' '.join(product_list)
+                if not product in dict_order_product.keys():
+                    dict_order_product[product] = 0
                 print(order[5])
                 num += 1
                 num_mes += 1
-                dict_order_product[order[7]] += 1
+                dict_order_product[product] += 1
                 count += int(order[5].split('.')[0])
                 text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
                 if num_mes > 39:
@@ -140,12 +142,14 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
         delta = (date1 - date2).days
         print(delta)
         if delta < period:
-            if not order[7] in dict_order_product.keys():
-                dict_order_product[order[7]] = 0
+            product_list = order[7].split()
+            product = ' '.join(product_list)
+            if not product in dict_order_product.keys():
+                dict_order_product[product] = 0
             print(order[5])
             num += 1
             num_mes += 1
-            dict_order_product[order[7]] += 1
+            dict_order_product[product] += 1
             count += int(order[5].split('.')[0])
             text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
             if num_mes > 39:
