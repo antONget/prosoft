@@ -116,6 +116,12 @@ async def process_sheduler(bot: Bot) -> None:
                         dict_rest[product]['Online'] = count_key
                         count_key = 0
                 dict_rest[product]['По телефону'] = count_key
+            elif 'Project' in product or 'Visio' in product:
+                for key in list_key:
+                    for k in key:
+                        if k == '✅':
+                            count_key += 1
+                dict_rest[product]['Online'] = count_key
             else:
                 for key in list_key:
                     for k in key:
