@@ -13,7 +13,8 @@ from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_key
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
-    update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key
+    update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
+    update_row_key_product_cancel, delete_row_order
 
 
 router = Router()
@@ -369,11 +370,14 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
     append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
                  username=callback.from_user.username, key=key_product, cost=cost, category=category, product=product,
                  type_give=type_give, id_product=id_product_in_category)
+    key_product_ = key_product
+    if category == 'Office 365':
+        key_product_ = key_product.split(':')[2]
     await callback.message.answer(text=f'Вы запрашивали <code>Ключ для {product}\n'
                                        f'{key_product}\n'
                                        f'Номер заказа: {token_order}</code>\n'
                                        f'отправьте его заказчику',
-                                  # reply_markup=keyboards_cancel_key(),
+                                  reply_markup=keyboards_cancel_key(category=category, key=key_product_, id_order=token_order),
                                   parse_mode='html')
     update_row_key_product(category=category, id_product_in_category=id_product_in_category, id_key=id_row_key)
 
@@ -396,3 +400,14 @@ async def process_select_back(callback: CallbackQuery) -> None:
         await callback.message.edit_text(text='Выберите продукт для получения ключа',
                                          reply_markup=keyboards_list_product(list_product=list_product,
                                                                              category='windows'))
+
+
+@router.callback_query(F.data.startswith('cancel_get_key'), lambda callback: check_user(callback.message.chat.id))
+async def process_cancel_get_key(callback: CallbackQuery) -> None:
+    logging.info(f'process_cancel_get_key: {callback.message.chat.id}')
+    category = callback.data.split('#')[1].split('.')[0]
+    key = callback.data.split('#')[1].split('.')[1]
+    id_order = callback.data.split('#')[1].split('.')[2]
+    update_row_key_product_cancel(category=category, key=key)
+    delete_row_order(id_order=id_order)
+    await callback.message.edit_text(text='Активация ключа в таблице восстановлена')

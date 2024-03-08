@@ -1,12 +1,12 @@
 import gspread
 import logging
 
-gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
-# gp = gspread.service_account(filename='services/test.json')
+# gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
+gp = gspread.service_account(filename='services/test.json')
 
 #Open Google spreadsheet
-# gsheet = gp.open('prosoft_1')
-gsheet = gp.open('Ключи')
+gsheet = gp.open('prosoft_1')
+# gsheet = gp.open('Ключи')
 
 
 # select worksheet
@@ -123,6 +123,31 @@ def update_row_key_product(category: str, id_product_in_category: int, id_key: i
                 break
     else:
         sheet.update_cell(id_key+1, 2, '❌')
+
+
+def update_row_key_product_cancel(category: str, key: str) -> None:
+    logging.info(f'update_row_key_product_cancel: {key}')
+    sheet = dict_category[category]
+
+    if category == 'Office 365':
+        value_list = sheet.get_all_values()
+        for i, row_value in enumerate(value_list):
+            if key in row_value[0]:
+                sheet.update_cell(i+1, 2, '✅')
+    else:
+        cell = sheet.find(key)
+        print(cell.row, cell.col)
+        for i in range(7):
+            # print(sheet.cell(cell.row, cell.col+1+i).value)
+            if sheet.cell(cell.row, cell.col+1+i).value == '❌':
+                sheet.update_cell(cell.row, cell.col+1+i, '✅')
+                break
+
+
+def delete_row_order(id_order: str) -> None:
+    logging.info(f'delete_row_order {id_order}')
+    cell = order_sheet.find(id_order)
+    order_sheet.delete_rows(cell.row)
 
 
 def update_row_key_product_new_key(new_key:str, id_order: str) -> None:

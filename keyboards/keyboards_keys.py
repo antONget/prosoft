@@ -71,8 +71,8 @@ def keyboards_list_type_windows(category: str, product: int):
     return keyboard
 
 
-def keyboards_cancel_key(category: str, product: int):
+def keyboards_cancel_key(category: str, key: str, id_order: str):
     logging.info("keyboards_list_type")
-    button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'cansel_get_key')
+    button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'cancel_get_key#{category}.{key}.{id_order}')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]], )
     return keyboard
