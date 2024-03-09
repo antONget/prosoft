@@ -150,6 +150,11 @@ def delete_row_order(id_order: str) -> None:
     order_sheet.delete_rows(cell.row)
 
 
+def update_row_order_listkey(id_order: str, listkey: str) -> None:
+    logging.info(f'delete_row_order {id_order}')
+    cell = order_sheet.find(id_order)
+    order_sheet.update_cell(cell.row, 5, listkey)
+
 def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
     logging.info(f'update_row_key_product_new_key')
     values_list = order_sheet.get_all_values()

@@ -10,11 +10,11 @@ from module.data_base import add_token, get_list_users, get_user, delete_user
 from datetime import datetime
 
 from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_category_keys, keyboards_list_product, \
-    keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_key
+    keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
-    update_row_key_product_cancel, delete_row_order
+    update_row_key_product_cancel, delete_row_order, update_row_order_listkey
 
 
 router = Router()
@@ -373,11 +373,12 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
     key_product_ = key_product
     if category == 'Office 365':
         key_product_ = key_product.split(':')[2]
-    await callback.message.answer(text=f'Вы запрашивали <code>Ключ для {product}\n'
+    await callback.message.answer(text=f'Вы запрашивали:\n'
+                                       f'<code>Ключ для {product}\n'
                                        f'{key_product}\n'
                                        f'Номер заказа: {token_order}</code>\n'
                                        f'отправьте его заказчику',
-                                  reply_markup=keyboards_cancel_key(category=category, key=key_product_, id_order=token_order),
+                                  reply_markup=keyboards_cancel_append_key(id_order=token_order),
                                   parse_mode='html')
     update_row_key_product(category=category, id_product_in_category=id_product_in_category, id_key=id_row_key)
 
@@ -405,9 +406,112 @@ async def process_select_back(callback: CallbackQuery) -> None:
 @router.callback_query(F.data.startswith('cancel_get_key'), lambda callback: check_user(callback.message.chat.id))
 async def process_cancel_get_key(callback: CallbackQuery) -> None:
     logging.info(f'process_cancel_get_key: {callback.message.chat.id}')
-    category = callback.data.split('#')[1].split('.')[0]
-    key = callback.data.split('#')[1].split('.')[1]
-    id_order = callback.data.split('#')[1].split('.')[2]
-    update_row_key_product_cancel(category=category, key=key)
+    id_order = callback.data.split('#')[1]
+    info_order = get_info_order(id_order)
+    list_key = info_order[4].split(',')
+    print(list_key)
+    for key in list_key:
+        update_row_key_product_cancel(category=info_order[6], key=key)
     delete_row_order(id_order=id_order)
     await callback.message.edit_text(text='Активация ключа в таблице восстановлена')
+
+
+@router.callback_query(F.data.startswith('append_get_key'), lambda callback: check_user(callback.message.chat.id))
+async def process_append_get_key(callback: CallbackQuery) -> None:
+    logging.info(f'process_cancel_get_key: {callback.message.chat.id}')
+    id_order = callback.data.split('#')[1]
+    info_order = get_info_order(id_order)
+    if info_order:
+        print(info_order)
+        new_key = ''
+        if info_order[6] == 'Office 365':
+            list_key = get_key_product_office365(info_order[6])
+            for key in list_key:
+                print(key)
+                if key[1] == '✅':
+                    new_key = key[0]
+                    update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                           id_key=key[-1])
+                    break
+        elif info_order[6] == 'office' or info_order[6] == 'windows':
+            list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
+            type_give = info_order[8]
+            list_key_online = []
+            list_key_phone = []
+            list_key_linking = []
+            dict_key_office = {
+                "list_key_online": list_key_online,
+                "list_key_phone": list_key_phone,
+                "list_key_linking": list_key_linking
+            }
+            key = "list_key_online"
+            for i, item in enumerate(list_key[1:]):
+                if item[0] == 'По телефону:':
+                    key = "list_key_phone"
+                if item[0] == 'С привязкой:':
+                    key = "list_key_linking"
+
+                dict_key_office[key].append(item)
+
+            if type_give == 'online':
+                # print(dict_key_office["list_key_phone"])
+                for key in dict_key_office["list_key_online"]:
+                    if '✅' in key and key[1] != '':
+                        new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
+                        break
+            if type_give == 'phone':
+                # print(dict_key_office["list_key_online"])
+                for key in dict_key_office["list_key_phone"]:
+                    if '✅' in key and key[1] != '':
+                        new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
+                        break
+            if type_give == 'linking':
+                # print(dict_key_office["list_key_online"])
+                for key in dict_key_office["list_key_linking"]:
+                    if '✅' in key and key[1] != '':
+                        new_key = key[1]
+                        update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                               id_key=key[-1])
+                        break
+
+        elif info_order[6] == 'visio' or info_order[6] == 'project':
+            list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
+            for key in list_key:
+                if '✅' in key and key[1] != '':
+                    new_key = key[1]
+                    update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
+                                           id_key=key[-1])
+                    break
+        text_old = callback.message.text
+        text_old_list = text_old.split('\n')
+        text_old_list = [i for i in text_old_list if i]
+        text_old_list.insert(2, new_key)
+        text_old_list.insert(1, '<code>')
+        text_old_list.insert(-1, '</code>')
+        text_new = '\n'.join(text_old_list)
+
+        # f'Вы запрашивали:\n'
+        # f'<code>Ключ для {product}\n'
+        # f'{key_product}\n'
+        # f'Номер заказа: {token_order}</code>\n'
+        # f'отправьте его заказчику',
+        print(text_new)
+        key_product_ = new_key
+        if info_order[6] == 'Office 365':
+            key_product_ = new_key.split(':')[2]
+        await callback.message.edit_text(text=f'{text_new}',
+                                         reply_markup=keyboards_cancel_append_key(id_order=info_order[0]),
+                                         parse_mode='html')
+        list_get_key = [info_order[4]]
+        list_get_key.append(new_key)
+        print(list_get_key)
+        update_row_order_listkey(id_order=id_order, listkey=','.join(list_get_key))
+
+
+        if new_key == '':
+            await callback.message.answer(text="Ключи выбранного продукта закончились")
+
