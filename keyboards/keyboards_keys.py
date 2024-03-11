@@ -11,7 +11,7 @@ def keyboard_select_type_keys() -> None:
     logging.info("keyboard_edit_list_user")
     button_1 = InlineKeyboardButton(text='Выдать', callback_data='get_key')
     button_2 = InlineKeyboardButton(text='Заменить', callback_data='change_key')
-    button_3 = InlineKeyboardButton(text='Ручной ввод', callback_data='hand_key')
+    button_3 = InlineKeyboardButton(text='Отметить продажу', callback_data='hand_key')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1, button_2], [button_3]],)
     return keyboard
 
