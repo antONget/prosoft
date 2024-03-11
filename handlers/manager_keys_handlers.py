@@ -579,4 +579,5 @@ async def process_input_get_key_hand(message: Message, state: FSMContext):
                  product=user_dict[message.chat.id]['product_hand'],
                  type_give='hand',
                  id_product='-')
+    await message.answer(text=f'Ключ добавлен в таблицу заказов')
     await state.set_state(default_state)
