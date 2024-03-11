@@ -168,11 +168,26 @@ def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
                 order_sheet.update_cell(row + 1, col, new_key)
 
 
-
 # поиск строки и столбца положения значения
 def values_row_col():
     values = office_sheet.get_all_values()
     print(values)
+
+
+def get_values_hand_product(product) -> str:
+    logging.info(f'get_values_hand_product')
+    values_list = cost_sheet.get_all_values()
+    cell = cost_sheet.find('Ключ по запросу')
+    for row, notes in enumerate(values_list[cell.row:]):
+        # print(product, notes[2])
+        if product in notes[2]:
+            # print(cell.row, cell.col)
+            print(cost_sheet.cell(row+22, 5).value)
+            return cost_sheet.cell(row+22, 5).value
+        if notes[2] == '':
+            break
+
+
 
 if __name__ == '__main__':
     get_key_product(category='windows', product=0)

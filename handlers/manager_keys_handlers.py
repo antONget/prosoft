@@ -11,16 +11,20 @@ from datetime import datetime
 
 from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_category_keys, keyboards_list_product, \
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
+from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
+    keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
+    keyboard_select_project_handkeys
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
-    update_row_key_product_cancel, delete_row_order, update_row_order_listkey
+    update_row_key_product_cancel, delete_row_order, update_row_order_listkey, get_values_hand_product
 
 
 router = Router()
 user_dict = {}
 class Keys(StatesGroup):
     get_id_order = State()
+    get_key_hand = State()
 
 
 # КЛЮЧ
@@ -36,7 +40,7 @@ async def process_get_keys(message: Message) -> None:
                          reply_markup=keyboard_select_type_keys())
 
 
-# КЛЮЧ - Заменить
+# КЛЮЧ - [Заменить]
 @router.callback_query(F.data == 'change_key', lambda callback: check_user(callback.message.chat.id))
 async def process_change_keys(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_keys: {callback.message.chat.id}')
@@ -44,7 +48,7 @@ async def process_change_keys(callback: CallbackQuery, state: FSMContext) -> Non
     await state.set_state(Keys.get_id_order)
 
 
-# КЛЮЧ - Заменить - номер заказа
+# КЛЮЧ - [Заменить] - номер заказа
 @router.message(F.text, lambda message: check_user(message.chat.id), StateFilter(Keys.get_id_order))
 async def process_get_id_order(message: Message, state: FSMContext) -> None:
     logging.info(f'process_get_id_order: {message.chat.id}')
@@ -140,7 +144,7 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
 
 
 
-# КЛЮЧ - Выдать - категории продуктов
+# КЛЮЧ - [Выдать] - категории продуктов
 @router.callback_query(F.data == 'get_key', lambda callback: check_user(callback.message.chat.id))
 async def process_select_category(callback: CallbackQuery) -> None:
     logging.info(f'process_select_category: {callback.message.chat.id}')
@@ -515,3 +519,64 @@ async def process_append_get_key(callback: CallbackQuery) -> None:
         if new_key == '':
             await callback.message.answer(text="Ключи выбранного продукта закончились")
 
+
+# КЛЮЧ - [Ручной ввод] - Категория
+@router.callback_query(F.data == 'hand_key', lambda callback: check_user(callback.message.chat.id))
+async def process_hand_keys(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_hand_keys: {callback.message.chat.id}')
+    await callback.message.answer(text='Выберите категорию для ручного ввода',
+                                  reply_markup=keyboard_select_category_handkeys())
+
+
+# КЛЮЧ - [Ручной ввод] - Категория - Продукт
+@router.callback_query(F.data.startswith('handgetproduct_'), lambda callback: check_user(callback.message.chat.id))
+async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
+    category = callback.data.split('_')[1]
+    keyboard = 0
+    if category == 'office':
+        keyboard = keyboard_select_office_handkeys()
+    elif category == 'windows':
+        keyboard = keyboard_select_windows_handkeys()
+    elif category == 'server':
+        keyboard = keyboard_select_server_handkeys()
+    elif category == 'visio':
+        keyboard = keyboard_select_visio_handkeys()
+    elif category == 'project':
+        keyboard = keyboard_select_project_handkeys()
+    await state.update_data(category_hand=category)
+    await callback.message.edit_text(text='Выберите продукт:',
+                                     reply_markup=keyboard)
+
+
+# КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавить ключ
+@router.callback_query(F.data.startswith('handgetkey'), lambda callback: check_user(callback.message.chat.id))
+async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
+    # category = callback.data.split('#')[1]
+    product = callback.data.split('#')[1]
+    cost_hand = get_values_hand_product(product)
+    await state.update_data(cost_hand=cost_hand)
+    await state.update_data(product_hand=product)
+    await callback.message.answer(text=f'Пришлите ключ для добавления')
+    await state.set_state(Keys.get_key_hand)
+
+
+@router.message(F.text, StateFilter(Keys.get_key_hand))
+async def process_input_get_key_hand(message: Message, state: FSMContext):
+    logging.info(f'process_input_get_key_hand: {message.chat.id}')
+    user_dict[message.chat.id] = await state.get_data()
+    token_order = str(token_urlsafe(8))
+    current_date = datetime.now()
+    current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
+    append_order(id_order=token_order,
+                 date=current_date_string.split()[0],
+                 time=current_date_string.split()[1],
+                 username=message.from_user.username,
+                 key=message.text,
+                 cost=user_dict[message.chat.id]['cost_hand'],
+                 category=user_dict[message.chat.id]['category_hand'],
+                 product=user_dict[message.chat.id]['product_hand'],
+                 type_give='hand',
+                 id_product='-')
+    await state.set_state(default_state)

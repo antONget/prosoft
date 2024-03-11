@@ -22,7 +22,7 @@ class Sales(StatesGroup):
 user_dict = {}
 
 
-# Статитстика - период статистики
+# ПРОДАЖИ - период статистики
 @router.message(F.text == 'Отчет по продажам', lambda message: check_user(message.chat.id))
 async def process_get_statistic_salesperiod(message: Message) -> None:
     logging.info(f'process_get_statistic_salesperiod: {message.chat.id}')
@@ -30,7 +30,7 @@ async def process_get_statistic_salesperiod(message: Message) -> None:
                          reply_markup=keyboard_select_period_sales())
 
 
-# Статистика - компания или менеджер для админа и менеджер для менеджера
+# ПРОДАЖИ - компания или менеджер для админа и менеджер для менеджера
 @router.callback_query(F.data.startswith('salesperiod'), lambda callback: check_user(callback.message.chat.id))
 async def process_get_salesscale(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_salesscale: {callback.message.chat.id}')
@@ -44,7 +44,7 @@ async def process_get_salesscale(callback: CallbackQuery, state: FSMContext) -> 
                                       reply_markup=keyboards_list_product_sales(list_manager=list_username))
 
 
-# Статистика - менеджер
+# ПРОДАЖИ - менеджер
 @router.callback_query(F.data == 'salesmanager', lambda callback: check_user(callback.message.chat.id))
 async def process_get_stat_salesmanager(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_salesmanager: {callback.message.chat.id}')
@@ -53,7 +53,7 @@ async def process_get_stat_salesmanager(callback: CallbackQuery, state: FSMConte
                                   reply_markup=keyboards_list_product_sales(list_manager=list_username))
 
 
-# Статистика - для выбранного менеджера
+# ПРОДАЖИ - для выбранного менеджера
 @router.callback_query(F.data.startswith('salesmanager#'), lambda callback: check_user(callback.message.chat.id))
 async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_select_salesmanager: {callback.message.chat.id}')
@@ -117,7 +117,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                   parse_mode='html')
 
 
-# Статистика - для выбранного менеджера
+# ПРОДАЖИ - для всей компании
 @router.callback_query(F.data == 'salescompany', lambda callback: check_user(callback.message.chat.id))
 async def process_get_stat_select_salescompany(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_select_salescompany: {callback.message.chat.id}')
