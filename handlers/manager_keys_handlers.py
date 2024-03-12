@@ -551,7 +551,10 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
         text_old = callback.message.text
         text_old_list = text_old.split('\n')
         text_old_list = [i for i in text_old_list if i]
-        text_old_list.insert(2, new_key)
+        len_key = len(text_old_list)
+        if len_key == 5:
+            text_old_list[2] = f'1№ {text_old_list[2]}'
+        text_old_list.insert(-2, f'{len_key-3}№ {new_key}')
         text_old_list.insert(1, '<code>')
         text_old_list.insert(-1, '</code>')
         text_new = '\n'.join(text_old_list)
@@ -562,9 +565,9 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
         # f'Номер заказа: {token_order}</code>\n'
         # f'отправьте его заказчику',
         print(text_new)
-        key_product_ = new_key
-        if info_order[6] == 'Office 365':
-            key_product_ = new_key.split(':')[2]
+        # key_product_ = new_key
+        # if info_order[6] == 'Office 365':
+        #     key_product_ = new_key.split(':')[2]
         await callback.message.edit_text(text=f'{text_new}',
                                          reply_markup=keyboards_cancel_append_key(id_order=info_order[0]),
                                          parse_mode='html')
