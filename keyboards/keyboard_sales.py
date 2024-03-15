@@ -11,6 +11,12 @@ def keyboard_select_period_sales() -> None:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3]],)
     return keyboard
 
+def keyboard_select_period_sales_new() -> None:
+    logging.info("keyboard_select_period_sales")
+    button_1 = InlineKeyboardButton(text='Сегодня', callback_data='salesperiod_1')
+    button_2 = InlineKeyboardButton(text='Календарь', callback_data='salesperiod_calendar')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
+    return keyboard
 
 def keyboard_select_scale_sales() -> None:
     logging.info("keyboard_select_scale_sales")
