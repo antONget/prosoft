@@ -5,9 +5,16 @@ import logging
 from filter.admin_filter import chek_admin, chek_admin_1
 from services.googlesheets import dict_category, get_list_product, get_key_product, get_key_product_office365
 from config_data.config import Config, load_config
-
+import requests
 router = Router()
 config: Config = load_config()
+
+def get_telegram_user(user_id, bot_token):
+    url = f'https://api.telegram.org/bot{bot_token}/getChat'
+    data = {'chat_id': user_id}
+    response = requests.post(url, data=data)
+    print(response.json())
+    return response.json()
 
 
 # ОСТАТОК
@@ -154,6 +161,8 @@ async def process_sheduler(bot: Bot) -> None:
             text += f'<i>{product}</i> - {dict_rest[category][product]}\n'
         text += f'------------\n'
     for admin in config.tg_bot.admin_ids.split(','):
-        await bot.send_message(chat_id=int(admin),
-                               text=text,
-                               parse_mode='html')
+        result = get_telegram_user(user_id=int(admin), bot_token=config.tg_bot.token)
+        if 'result' in result:
+            await bot.send_message(chat_id=int(admin),
+                                   text=text,
+                                   parse_mode='html')

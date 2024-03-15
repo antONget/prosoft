@@ -3,6 +3,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import logging
 
 
+def keyboard_select_scaledetail_sales() -> None:
+    logging.info("keyboard_select_period_sales")
+    button_1 = InlineKeyboardButton(text='Детальный отчет', callback_data='scalesales_details')
+    button_2 = InlineKeyboardButton(text='Итоговый отчет', callback_data='scalesales_total')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
+    return keyboard
+
+
 def keyboard_select_period_sales() -> None:
     logging.info("keyboard_select_period_sales")
     button_1 = InlineKeyboardButton(text='День', callback_data='salesperiod_1')
@@ -32,7 +40,6 @@ def keyboards_list_product_sales(list_manager: list):
     buttons = []
     for i, manager in enumerate(list_manager):
         callback = f'salesmanager#{manager[1]}'
-        print(callback)
         buttons.append(InlineKeyboardButton(
             text=manager[1],
             callback_data=callback))

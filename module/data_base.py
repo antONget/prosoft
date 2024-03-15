@@ -7,7 +7,7 @@ import logging
 
 config: Config = load_config()
 db = sqlite3.connect('database.db', check_same_thread=False, isolation_level='EXCLUSIVE')
-sql = db.cursor()
+# sql = db.cursor()
 
 
 # СОЗДАНИЕ ТАБЛИЦ
@@ -17,49 +17,55 @@ def create_table_users() -> None:
     :return: None
     """
     logging.info("table_users")
-    sql.execute("""CREATE TABLE IF NOT EXISTS users(
-        id INTEGER PRIMARY KEY,
-        token_auth TEXT,
-        telegram_id INTEGER,
-        username TEXT,
-        is_admin INTEGER,
-        operator INTEGER
-    )""")
-    db.commit()
+    with db:
+        sql = db.cursor()
+        sql.execute("""CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY,
+            token_auth TEXT,
+            telegram_id INTEGER,
+            username TEXT,
+            is_admin INTEGER,
+            operator INTEGER
+        )""")
+        db.commit()
 
 
 # ПОЛЬЗОВАТЕЛЬ - верификация токена и добавление пользователя
 def check_token(message: Message) -> bool:
     logging.info("check_token")
-    # Выполнение запроса для получения token_auth
-    sql.execute('SELECT token_auth, telegram_id  FROM users')
-    list_token = [row for row in sql.fetchall()]
-    # Извлечение результатов запроса и сохранение их в список
-    print('check_token', list_token)
-    for row in list_token:
-        token = row[0]
-        telegram_id = row[1]
-        if token == message.text and telegram_id == 'telegram_id':
-            if message.from_user.username:
-                sql.execute('UPDATE users SET telegram_id = ?, username = ? WHERE token_auth = ?',
-                            (message.chat.id, message.from_user.username, message.text))
-                db.commit()
-                return True
-            else:
-                sql.execute('UPDATE users SET telegram_id = ?, username = ? WHERE token_auth = ?',
-                            (message.chat.id, 'anonimus', message.text))
-                db.commit()
-                return True
+    with db:
+        sql = db.cursor()
+        # Выполнение запроса для получения token_auth
+        sql.execute('SELECT token_auth, telegram_id  FROM users')
+        list_token = [row for row in sql.fetchall()]
+        # Извлечение результатов запроса и сохранение их в список
+        print('check_token', list_token)
+        for row in list_token:
+            token = row[0]
+            telegram_id = row[1]
+            if token == message.text and telegram_id == 'telegram_id':
+                if message.from_user.username:
+                    sql.execute('UPDATE users SET telegram_id = ?, username = ? WHERE token_auth = ?',
+                                (message.chat.id, message.from_user.username, message.text))
+                    db.commit()
+                    return True
+                else:
+                    sql.execute('UPDATE users SET telegram_id = ?, username = ? WHERE token_auth = ?',
+                                (message.chat.id, 'anonimus', message.text))
+                    db.commit()
+                    return True
 
-    db.commit()
-    return False
+        db.commit()
+        return False
 
 
 def add_token(token_new) -> None:
     logging.info(f'add_token: {token_new}')
-    sql.execute(f'INSERT INTO users (token_auth, telegram_id, username, is_admin, operator) '
-                f'VALUES ("{token_new}", "telegram_id", "username", 0, 0)')
-    db.commit()
+    with db:
+        sql = db.cursor()
+        sql.execute(f'INSERT INTO users (token_auth, telegram_id, username, is_admin, operator) '
+                    f'VALUES ("{token_new}", "telegram_id", "username", 0, 0)')
+        db.commit()
 
 
 def add_super_admin(id_admin, user_name) -> None:
@@ -70,13 +76,15 @@ def add_super_admin(id_admin, user_name) -> None:
     :return:
     """
     logging.info(f'add_super_admin')
-    sql.execute('SELECT telegram_id FROM users')
-    list_user = [row[0] for row in sql.fetchall()]
+    with db:
+        sql = db.cursor()
+        sql.execute('SELECT telegram_id FROM users')
+        list_user = [row[0] for row in sql.fetchall()]
 
-    if int(id_admin) not in list_user:
-        sql.execute(f'INSERT INTO users (token_auth, telegram_id, username, is_admin, operator) '
-                    f'VALUES ("SUPERADMIN", {id_admin}, "{user_name}", 1, 0)')
-        db.commit()
+        if int(id_admin) not in list_user:
+            sql.execute(f'INSERT INTO users (token_auth, telegram_id, username, is_admin, operator) '
+                        f'VALUES ("SUPERADMIN", {id_admin}, "{user_name}", 1, 0)')
+            db.commit()
 
 
 def get_list_users() -> list:
@@ -85,9 +93,11 @@ def get_list_users() -> list:
     :return:
     """
     logging.info(f'get_list_users')
-    sql.execute('SELECT telegram_id, username FROM users WHERE NOT username = ? ORDER BY id', ('username',))
-    list_username = [row for row in sql.fetchall()]
-    return list_username
+    with db:
+        sql = db.cursor()
+        sql.execute('SELECT telegram_id, username FROM users WHERE NOT username = ? ORDER BY id', ('username',))
+        list_username = [row for row in sql.fetchall()]
+        return list_username
 
 
 def get_user(telegram_id):
@@ -97,7 +107,9 @@ def get_user(telegram_id):
     :return:
     """
     logging.info(f'get_user')
-    return sql.execute('SELECT username FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    with db:
+        sql = db.cursor()
+        return sql.execute('SELECT username FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
 
 
 def delete_user(telegram_id):
@@ -107,37 +119,47 @@ def delete_user(telegram_id):
     :return:
     """
     logging.info(f'delete_user')
-    sql.execute('DELETE FROM users WHERE telegram_id = ?', (telegram_id,))
-    db.commit()
+    with db:
+        sql = db.cursor()
+        sql.execute('DELETE FROM users WHERE telegram_id = ?', (telegram_id,))
+        db.commit()
 
 
 def get_list_notadmins() -> list:
     logging.info(f'get_list_notadmins')
-    sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (0, 'username'))
-    list_notadmins = [row for row in sql.fetchall()]
-    return list_notadmins
+    with db:
+        sql = db.cursor()
+        sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (0, 'username'))
+        list_notadmins = [row for row in sql.fetchall()]
+        return list_notadmins
 
 
 # АДМИНИСТРАТОРЫ - назначить пользователя администратором
 def set_admins(telegram_id):
     logging.info(f'set_admins')
-    sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (1, telegram_id))
-    db.commit()
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (1, telegram_id))
+        db.commit()
 
 
 # АДМИНИСТРАТОРЫ - список администраторов
 def get_list_admins() -> list:
     logging.info(f'get_list_admins')
-    sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (1, 'username'))
-    list_admins = [row for row in sql.fetchall()]
-    return list_admins
+    with db:
+        sql = db.cursor()
+        sql.execute('SELECT telegram_id, username FROM users WHERE is_admin = ? AND NOT username = ?', (1, 'username'))
+        list_admins = [row for row in sql.fetchall()]
+        return list_admins
 
 
 # АДМИНИСТРАТОРЫ - разжаловать пользователя из администраторов
 def set_notadmins(telegram_id):
     logging.info(f'set_notadmins')
-    sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (0, telegram_id))
-    db.commit()
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (0, telegram_id))
+        db.commit()
 #
 #
 # def update_operator():
