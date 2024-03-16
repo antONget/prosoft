@@ -408,7 +408,7 @@ async def process_select_key_visio_and_project(callback: CallbackQuery, category
 
 
 async def get_key_product_finish(callback: CallbackQuery, category: str, product: str, key_product: str,
-                                 id_row_key: int, cost: str, type_give: str, state: FSMContext = None,
+                                 id_row_key: int, cost: list, type_give: str, state: FSMContext = None,
                                  id_product_in_category: int = -1, bot: Bot = None) -> None:
     logging.info(f'get_key_product_finish: {callback.message.chat.id}')
     token_order = str(token_urlsafe(8))
@@ -416,6 +416,7 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
     product_list = product.split()
     product = ' '.join(product_list)
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
+    cost = '/'.join([cost[1], cost[0], cost[2], cost[3]])
     append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
                  username=callback.from_user.username, key=key_product, cost=cost, category=category, product=product,
                  type_give=type_give, id_product=id_product_in_category)

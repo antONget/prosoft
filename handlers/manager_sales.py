@@ -11,7 +11,7 @@ from datetime import date
 
 import aiogram_calendar
 from aiogram.filters.callback_data import CallbackData
-
+import json
 from keyboards.keyboard_sales import keyboard_select_period_sales_new, keyboard_select_scale_sales,\
     keyboards_list_product_sales, keyboard_select_scaledetail_sales
 from filter.user_filter import check_user
@@ -205,6 +205,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
     num_mes = 0
     # список выполненных заказов
     list_text = []
+    list_finance_data = []
     # проходимся по всему списку заказов
     for order in list_orders[1:]:
         # отбираем заказы выполненные выбранным менеджером
@@ -247,7 +248,8 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 # увеличиваем сумму выполненных заказов
                 count += int(order[5].split('.')[0])
                 # формируем строку для вывода в сообщении
-                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
+                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]} ₽\n"
+                list_finance_data.append(order[5])
                 # проверяем длину сообщения
                 if num_mes > 39:
                     # обнуляем длину сообщения
@@ -297,7 +299,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                    f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
                                                    f'{text}\n\n',
                                               parse_mode='html')
-    if scale_detail == 'total':
+    if scale_detail == 'total' or scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
             # инициализируем переменную для сообщения для итоговых данных
             total_text = ''
@@ -344,6 +346,9 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     logging.info(f'process_get_stat_select_salescompany: {callback.message.chat.id}')
     # обновляем данные словаря
     user_dict[callback.message.chat.id] = await state.update_data()
+    # загрузить из json
+    with open('services/dict_sales.json', 'r', encoding='utf-8') as fh:  # открываем файл на чтение
+        dict_sales = json.load(fh)  # загружаем из файла данные в словарь data
     # получаем период для которого нужно получить отчет
     if int(user_dict[callback.message.chat.id]['salesperiod']):
         # получаем текущую дату
@@ -380,6 +385,10 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     num_mes = 0
     # список выполненных заказов
     list_text = []
+    list_finance_data = []
+    cost_price = 0
+    net_profit = 0
+    marginality = 0
     # проходимся по всему списку заказов
     for order in list_orders[1:]:
         # разбиваем дату выполнения заказа
@@ -418,7 +427,22 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
             # увеличиваем сумму выполненных заказов
             count += int(order[5].split('.')[0])
             # формируем строку для вывода в сообщении
-            text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5]}\n"
+            text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]} ₽\n"
+            if date_order >= date(24, 3, 16):
+                # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
+
+                list_finance_data.append(order[5])
+                cost_price += float(order[5].split('/')[1].split()[0])
+                net_profit += float(order[5].split('/')[3].split()[0])
+                marginality += float(order[5].split('/')[2])
+            else:
+                list_finance_data.append(f'{order[5]}/'
+                                         f'{dict_sales[order[7]][order[8]][0]}/'
+                                         f'{dict_sales[order[7]][order[8]][2]}/'
+                                         f'{dict_sales[order[7]][order[8]][3]}')
+                cost_price += float(dict_sales[order[7]][order[8]][0].split()[0])
+                net_profit += float(dict_sales[order[7]][order[8]][3].split()[0])
+                marginality += float(dict_sales[order[7]][order[8]][2])
             # проверяем длину сообщения
             if num_mes > 39:
                 # обнуляем длину сообщения
@@ -427,6 +451,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                 list_text.append(text)
                 # обнуляем строку
                 text = ''
+    print(list_finance_data)
     # добавляем строки с заказами для последнего сообщения
     list_text.append(text)
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
@@ -467,7 +492,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                    f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
                                                    f'{text}\n\n',
                                               parse_mode='html')
-    if scale_detail == 'total':
+    if scale_detail == 'total' or scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
             # инициализируем переменную для сообщения для итоговых данных
             total_text = ''
@@ -482,8 +507,11 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                 total_text += '--------------\n'
             await callback.message.answer(text=f'<b>Отчет о продажах компании за '
                                                f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
-                                               f'{total_text}\n\n'
+                                               f'{total_text}\n'
                                                f'Компания выполнила заказов на {count} ₽\n'
+                                               f'Себестоимость: {cost_price} ₽\n'
+                                               f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                               f'Чистая прибыль: {net_profit} ₽\n'
                                                f'Количество продаж: {total_order} шт.',
                                           parse_mode='html')
         else:
@@ -503,7 +531,10 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                f' {list_date_start[1]}/{list_date_start[0]}/'
                                                f'{list_date_start[2]} по {list_date_finish[1]}/'
                                                f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n\n'
-                                               f'{total_text}\n\n'
+                                               f'{total_text}\n'
                                                f'Компания выполнила заказов на {count} ₽\n'
+                                               f'Себестоимость: {cost_price} ₽\n'
+                                               f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                               f'Чистая прибыль: {net_profit} ₽\n'
                                                f'Количество продаж: {total_order} шт.',
                                           parse_mode='html')
