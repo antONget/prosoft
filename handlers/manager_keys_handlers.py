@@ -157,9 +157,12 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == 'get_key', lambda callback: check_user(callback.message.chat.id))
 async def process_select_category(callback: CallbackQuery) -> None:
     logging.info(f'process_select_category: {callback.message.chat.id}')
-    await callback.message.edit_text(text='Выберите категорию продукта для получения ключа',
+    try:
+        await callback.message.edit_text(text='Выберите категорию продукта для получения ключа',
                                      reply_markup=keyboard_select_category_keys())
-
+    except:
+        await callback.message.edit_text(text='Выберитe категoрию продукта для получения ключа',
+                                         reply_markup=keyboard_select_category_keys())
 
 # КЛЮЧ - [Выдать] - категории - продукты
 @router.callback_query(F.data.startswith('getproduct'), lambda callback: check_user(callback.message.chat.id))
@@ -171,9 +174,14 @@ async def process_select_product(callback: CallbackQuery) -> None:
         list_product = list_product[:2]
     if callback.data.split('_')[1] == 'office':
         list_product = list_product[:3]
-    await callback.message.edit_text(text='Выберите продукт для получения ключа',
-                                     reply_markup=keyboards_list_product(list_product=list_product,
+    try:
+        await callback.message.edit_text(text='Выберите продукт для получения ключа',
+                                         reply_markup=keyboards_list_product(list_product=list_product,
                                                                          category=callback.data.split('_')[1]))
+    except:
+        await callback.message.edit_text(text='Выберите прoдукт для пoлучения ключа',
+                                         reply_markup=keyboards_list_product(list_product=list_product,
+                                                                             category=callback.data.split('_')[1]))
 
 
 # КЛЮЧ - [Выдать] - категории - продукт - способ выдачи (для office и windows)
