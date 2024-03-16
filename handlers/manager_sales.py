@@ -436,13 +436,15 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                 net_profit += float(order[5].split('/')[3].split()[0])
                 marginality += float(order[5].split('/')[2])
             else:
+                product = order[7].strip()
+                # product = ' '.join()
                 list_finance_data.append(f'{order[5]}/'
-                                         f'{dict_sales[order[7]][order[8]][0]}/'
-                                         f'{dict_sales[order[7]][order[8]][2]}/'
-                                         f'{dict_sales[order[7]][order[8]][3]}')
-                cost_price += float(dict_sales[order[7]][order[8]][0].split()[0])
-                net_profit += float(dict_sales[order[7]][order[8]][3].split()[0])
-                marginality += float(dict_sales[order[7]][order[8]][2])
+                                         f'{dict_sales[product][order[8]][0]}/'
+                                         f'{dict_sales[product][order[8]][2]}/'
+                                         f'{dict_sales[product][order[8]][3]}')
+                cost_price += float(dict_sales[product][order[8]][0].split()[0])
+                net_profit += float(dict_sales[product][order[8]][3].split()[0])
+                marginality += float(dict_sales[product][order[8]][2])
             # проверяем длину сообщения
             if num_mes > 39:
                 # обнуляем длину сообщения
