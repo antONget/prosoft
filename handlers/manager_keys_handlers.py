@@ -167,7 +167,7 @@ async def process_select_category(callback: CallbackQuery) -> None:
 # КЛЮЧ - [Выдать] - категории - продукты
 @router.callback_query(F.data.startswith('getproduct'), lambda callback: check_user(callback.message.chat.id))
 async def process_select_product(callback: CallbackQuery) -> None:
-    logging.info(f'process_select_product: {callback.message.chat.id}')
+    logging.info(f'process_select_product:{callback.data.split("_")[1]} {callback.message.chat.id} ')
     list_product = get_list_product(callback.data.split('_')[1])
     print(list_product)
     if callback.data.split('_')[1] == 'windows':
@@ -175,9 +175,9 @@ async def process_select_product(callback: CallbackQuery) -> None:
     if callback.data.split('_')[1] == 'office':
         list_product = list_product[:3]
     try:
-        await callback.message.edit_text(text='Выберите продукт для получения ключа',
+        await callback.message.edit_text(text='Выберите продукт для получения ключа.',
                                          reply_markup=keyboards_list_product(list_product=list_product,
-                                                                         category=callback.data.split('_')[1]))
+                                                                             category=callback.data.split('_')[1]))
     except:
         await callback.message.edit_text(text='Выберите прoдукт для пoлучения ключа',
                                          reply_markup=keyboards_list_product(list_product=list_product,
