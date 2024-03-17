@@ -27,6 +27,7 @@ dict_category = {
 }
 
 def get_list_product(category):
+    logging.info(f'get_list_product')
     sheet = dict_category[category]
     values = sheet.get_all_values()
     list_product = []
@@ -38,6 +39,7 @@ def get_list_product(category):
 
 
 def get_list_orders():
+    logging.info(f'get_list_orders')
     values = order_sheet.get_all_values()
     list_orders = []
     for item in values:
@@ -79,29 +81,45 @@ def get_key_product_office365(category: str) -> list:
     return list_key
 
 
-def get_cost_product(product: str, typelink: str = 'None') -> str:
+def get_cost_product(product: str, typelink: str = 'None') -> list:
     logging.info(f'get_cost_product, {product}:{typelink}')
     values = cost_sheet.get_all_values()
     cost_key = 0
     product = product.strip()
     for row, item in enumerate(values):
-        print(item[:2], product in item[:3], 'online' in typelink, item[1] == 'online')
+        # print(item[:2], product in item[:3], 'online' in typelink, item[1] == 'online')
         if product in item[:3] and 'online' in typelink and item[1] == 'online':
-            print(1, item[4])
-            cost_key = item[4]
+            # print(1, item[4])
+            cost_key = item[3:7]
+            break
         elif product in item[:3] and 'phone' in typelink and item[1] == 'phone':
-            print(2, item[4])
-            cost_key = item[4]
+            # print(2, item[4])
+            cost_key = item[3:7]
+            break
         elif product in item[:3] and 'linking' in typelink and item[1] == 'linking':
-            print(3, item[4])
-            cost_key = item[4]
+            # print(3, item[4])
+            cost_key = item[3:7]
+            break
         else:
             if product == 'Office 365' and item[1] == 'None':
-                cost_key = item[4]
-                print(4, item[4])
-    print(cost_key)
+                cost_key = item[3:7]
+                # print(4, item[4])
+                break
+    # print(cost_key)
     return cost_key
 
+
+def get_cost_product_list() -> list:
+    logging.info(f'get_cost_product_list')
+    values = cost_sheet.get_all_values()
+    list_cost_product = []
+    for product in values:
+        if product[0] == 'end':
+            break
+        else:
+            list_cost_product.append([product[0], product[1], product[3], product[4], product[5], product[6]])
+    print(list_cost_product)
+    return list_cost_product
 
 # добавить значения
 def append_order(id_order, date, time, username, key, cost, category, product, type_give, id_product=-1):
@@ -190,4 +208,22 @@ def get_values_hand_product(product) -> str:
 
 
 if __name__ == '__main__':
-    get_key_product(category='windows', product=0)
+    import json
+
+    list_orders = get_list_orders()
+    dict_sales = {}
+    for sales in list_orders[1:]:
+        list_product = sales[7].split()
+        product = ' '.join(list_product)
+        if product not in dict_sales.keys():
+            dict_sales[product] = {sales[8]: 0}
+        else:
+            dict_sales[product][sales[8]] = 0
+    list_cost_product = get_cost_product_list()
+    for product in dict_sales.keys():
+        for give in dict_sales[product].keys():
+            for product_cost in list_cost_product:
+                if product in product_cost[0] and product_cost[1] == give or product_cost[0] == 'Office 365':
+                    dict_sales[product][give] = product_cost[2:]
+    with open('dict_sales.json', 'w', encoding='utf8') as fp:
+        json.dump(dict_sales, fp, indent=4, ensure_ascii=False)
