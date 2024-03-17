@@ -200,8 +200,9 @@ def get_values_hand_product(product) -> str:
         # print(product, notes[2])
         if product in notes[2]:
             # print(cell.row, cell.col)
-            print(cost_sheet.cell(row+22, 5).value)
-            return cost_sheet.cell(row+22, 5).value
+            print(product, notes[3:7])
+            # print(cost_sheet.cell(row+22, 5).value)
+            return notes[3:7]
         if notes[2] == '':
             break
 

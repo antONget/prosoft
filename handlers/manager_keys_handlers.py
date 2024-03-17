@@ -635,7 +635,8 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
     logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
     # category = callback.data.split('#')[1]
     product = callback.data.split('#')[1]
-    cost_hand = get_values_hand_product(product)
+    cost_hand_list = get_values_hand_product(product)
+    cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     await state.update_data(cost_hand=cost_hand)
     await state.update_data(product_hand=product)
     await callback.message.answer(text=f'Пришлите ключ для добавления')
