@@ -3,6 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup, default_state
 from aiogram.filters import StateFilter
+from aiogram.types import FSInputFile
 import logging
 
 from module.data_base import get_list_users
@@ -17,7 +18,7 @@ from keyboards.keyboard_sales import keyboard_select_period_sales_new, keyboard_
 from filter.user_filter import check_user
 from filter.admin_filter import chek_admin
 from services.googlesheets import get_list_orders
-
+from services.sales_exel import list_sales_to_exel
 
 router = Router()
 
@@ -98,8 +99,6 @@ async def process_simple_calendar_start(callback_query: CallbackQuery, callback_
             f'Начало периода {date.strftime("%d/%m/%y")}')
         await state.update_data(period_start=date.strftime("%m/%d/%y"))
         await process_buttons_press_finish(callback_query, state=state)
-
-
 
 
 @router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(Sales.period_finish))
@@ -388,6 +387,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     # список выполненных заказов
     list_text = []
     list_finance_data = []
+    list_orders_filter = []
     cost_price = 0
     net_profit = 0
     marginality = 0
@@ -455,7 +455,9 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                 list_text.append(text)
                 # обнуляем строку
                 text = ''
-    print(list_finance_data)
+            list_orders_filter.append(order)
+
+    # print(list_finance_data)
     # добавляем строки с заказами для последнего сообщения
     list_text.append(text)
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
@@ -476,6 +478,15 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                    f'{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                                    f'{text}\n\n',
                                               parse_mode='html')
+            list_sales_to_exel(list_sales=list_orders_filter,
+                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                               count=count,
+                               cost_price=cost_price,
+                               marginality=round(marginality / len(list_finance_data), 2),
+                               net_profit=net_profit,
+                               dict_order_product=dict_order_product)
+            # file_path = "sales.xlsx"  # или "folder/filename.ext"
+            # await callback.message.answer_document(FSInputFile(file_path))
         else:
             count_days = (date_finish - date_start).days + 1
             # если список с заказами не пустой
@@ -496,6 +507,16 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                    f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
                                                    f'{text}\n\n',
                                               parse_mode='html')
+            list_sales_to_exel(list_sales=list_orders_filter,
+                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
+                                           f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
+                                           f'{list_date_finish[2]}',
+                               count=count,
+                               cost_price=cost_price,
+                               marginality=round(marginality/len(list_finance_data),2),
+                               net_profit=net_profit,
+                               dict_order_product=dict_order_product)
+
     if scale_detail == 'total' or scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
             # инициализируем переменную для сообщения для итоговых данных
@@ -542,4 +563,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                f'Чистая прибыль: {net_profit} ₽\n'
                                                f'Количество продаж: {total_order} шт.',
                                           parse_mode='html')
+    if scale_detail == 'details':
+        file_path = "sales.xlsx"  # или "folder/filename.ext"
+        await callback.message.answer_document(FSInputFile(file_path))
 
