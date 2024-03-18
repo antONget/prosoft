@@ -14,7 +14,7 @@ import aiogram_calendar
 from aiogram.filters.callback_data import CallbackData
 import json
 from keyboards.keyboard_sales import keyboard_select_period_sales_new, keyboard_select_scale_sales,\
-    keyboards_list_product_sales, keyboard_select_scaledetail_sales
+    keyboards_list_product_sales, keyboard_select_scaledetail_sales, keyboard_get_exel
 from filter.user_filter import check_user
 from filter.admin_filter import chek_admin
 from services.googlesheets import get_list_orders
@@ -564,6 +564,13 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                f'Количество продаж: {total_order} шт.',
                                           parse_mode='html')
     if scale_detail == 'details':
-        file_path = "sales.xlsx"  # или "folder/filename.ext"
-        await callback.message.answer_document(FSInputFile(file_path))
+        await callback.message.answer(text='Получить отчет в виде файла exel',
+                                      reply_markup=keyboard_get_exel())
+
+
+@router.callback_query(F.data == 'exel', lambda callback: check_user(callback.message.chat.id))
+async def process_get_exel(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_get_exel: {callback.message.chat.id}')
+    file_path = "sales.xlsx"  # или "folder/filename.ext"
+    await callback.message.answer_document(FSInputFile(file_path))
 

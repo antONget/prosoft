@@ -46,3 +46,8 @@ def keyboards_list_product_sales(list_manager: list):
     kb_builder.row(*buttons, width=1)
     return kb_builder.as_markup()
 
+def keyboard_get_exel() -> None:
+    logging.info("keyboard_select_scale_sales")
+    button_1 = InlineKeyboardButton(text='Выгрузить отчет Excel', callback_data='exel')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1],], )
+    return keyboard
