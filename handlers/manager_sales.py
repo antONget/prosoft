@@ -97,7 +97,9 @@ async def process_simple_calendar_start(callback_query: CallbackQuery, callback_
         await callback_query.message.edit_text(
             f'Начало периода {date.strftime("%d/%m/%y")}')
         await state.update_data(period_start=date.strftime("%m/%d/%y"))
-    await process_buttons_press_finish(callback_query, state=state)
+        await process_buttons_press_finish(callback_query, state=state)
+
+
 
 
 @router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(Sales.period_finish))
@@ -110,14 +112,14 @@ async def process_simple_calendar_finish(callback: CallbackQuery, callback_data:
             f'Конец периода {date.strftime("%d/%m/%y")}')
         await state.update_data(period_finish=date.strftime("%m/%d/%y"))
         await state.update_data(salesperiod=0)
-    await state.set_state(default_state)
-    if chek_admin(callback.message.chat.id):
-        await callback.message.answer(text='Получить отчет о продажах',
-                                      reply_markup=keyboard_select_scale_sales())
-    elif check_user(callback.message.chat.id):
-        list_username = get_list_users()
-        await callback.message.answer(text='Для кого требуется получить отчет о продажах',
-                                      reply_markup=keyboards_list_product_sales(list_manager=list_username))
+        await state.set_state(default_state)
+        if chek_admin(callback.message.chat.id):
+            await callback.message.answer(text='Получить отчет о продажах',
+                                          reply_markup=keyboard_select_scale_sales())
+        elif check_user(callback.message.chat.id):
+            list_username = get_list_users()
+            await callback.message.answer(text='Для кого требуется получить отчет о продажах',
+                                          reply_markup=keyboards_list_product_sales(list_manager=list_username))
 
 
 # ПРОДАЖИ - компания или менеджер для админа и менеджер для менеджера
