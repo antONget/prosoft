@@ -642,11 +642,11 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
     # обновляем данные словаря
 
     # получаем текущую дату
-    current_date = datetime.now()
+    current_date = datetime.now() - timedelta(days=1)
     # преобразуем ее в строку
     period_start = current_date.strftime('%m/%d/%y')
     today = datetime.now()
-    tomorrow = today + timedelta(days=1)
+    tomorrow = today
     period_finish = tomorrow.strftime('%m/%d/%y')
     # print(period_start, period_finish)
     list_date_start = period_start.split('/')
@@ -662,9 +662,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
     # инициализируем словарь для суммирования количества по продуктам
     dict_order_product = {}
 
-
     # список выполненных заказов
-    list_text = []
     list_finance_data = []
     list_orders_filter = []
     cost_price = 0
