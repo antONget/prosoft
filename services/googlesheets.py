@@ -48,7 +48,7 @@ def get_list_orders():
 
 def get_key_product(category: str, product: int) -> list:
     logging.info(f'get_key_product')
-    print("product:", product)
+    # print("product:", product)
     sheet = dict_category[category]
     values = sheet.get_all_values()
     list_key = []
@@ -118,7 +118,7 @@ def get_cost_product_list() -> list:
             break
         else:
             list_cost_product.append([product[0], product[1], product[3], product[4], product[5], product[6]])
-    print(list_cost_product)
+    # print(list_cost_product)
     return list_cost_product
 
 # добавить значения
@@ -131,12 +131,12 @@ def update_row_key_product(category: str, id_product_in_category: int, id_key: i
     logging.info(f'update_row_key_product')
     sheet = dict_category[category]
     values_list = sheet.row_values(id_key+1)[id_product_in_category*7:id_product_in_category*7+7]
-    print(values_list)
+    # print(values_list)
     if id_product_in_category >= 0:
         for i, value in enumerate(values_list):
             if value == '✅':
                 col = i + 7 * id_product_in_category
-                print(id_key+1, col)
+                # print(id_key+1, col)
                 sheet.update_cell(id_key+1, col+1, '❌')
                 break
     else:
@@ -154,7 +154,7 @@ def update_row_key_product_cancel(category: str, key: str) -> None:
                 sheet.update_cell(i+1, 2, '✅')
     else:
         cell = sheet.find(key)
-        print(cell.row, cell.col)
+        # print(cell.row, cell.col)
         for i in range(7):
             # print(sheet.cell(cell.row, cell.col+1+i).value)
             if sheet.cell(cell.row, cell.col+1+i).value == '❌':
@@ -189,7 +189,7 @@ def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
 # поиск строки и столбца положения значения
 def values_row_col():
     values = office_sheet.get_all_values()
-    print(values)
+    # print(values)
 
 
 def get_values_hand_product(product) -> str:
@@ -197,10 +197,10 @@ def get_values_hand_product(product) -> str:
     values_list = cost_sheet.get_all_values()
     cell = cost_sheet.find('Ключ по запросу')
     for row, notes in enumerate(values_list[cell.row:]):
-        # print(product, notes[2])
+        # print("product, notes[2]", product, notes[2])
         if product in notes[2]:
             # print(cell.row, cell.col)
-            print(product, notes[3:7])
+            # print(product, notes[3:7])
             # print(cost_sheet.cell(row+22, 5).value)
             return notes[3:7]
         if notes[2] == '':

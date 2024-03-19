@@ -13,7 +13,7 @@ def get_telegram_user(user_id, bot_token):
     url = f'https://api.telegram.org/bot{bot_token}/getChat'
     data = {'chat_id': user_id}
     response = requests.post(url, data=data)
-    print(response.json())
+    # print(response.json())
     return response.json()
 
 

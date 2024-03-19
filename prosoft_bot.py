@@ -9,7 +9,9 @@ from handlers import user_auth_handler, manager_keys_handlers, manager_sales
 from handlers import other_handlers
 from handlers.admin_rest_keys import process_sheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
+from middlewares.outer import Middleware_message, Middleware_callback
+from handlers.manager_keys_handlers import router as router_user
+from handlers.manager_sales import router as router_sales
 # Инициализируем logger
 logger = logging.getLogger(__name__)
 
@@ -47,8 +49,10 @@ async def main():
     dp.include_router(user_auth_handler.router)
     dp.include_router(other_handlers.router)
 
-
-
+    router_user.message.middleware(Middleware_message())
+    router_user.callback_query.middleware(Middleware_callback())
+    router_sales.message.middleware(Middleware_message())
+    router_sales.callback_query.middleware(Middleware_callback())
     # Пропускаем накопившиеся update и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

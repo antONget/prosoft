@@ -33,7 +33,7 @@ user_dict = {}
 
 
 # ПРОДАЖИ - период статистики
-@router.message(F.text == 'Отчет по продажам', lambda message: check_user(message.chat.id))
+@router.message(F.text == 'Отчет по продажам')
 async def process_get_statistic_sales_period(message: Message) -> None:
     """
     Начало цепочки сообщений для выбора отчета о продажах (выбор периода для которого выдается отчет о продажах)
@@ -47,7 +47,7 @@ async def process_get_statistic_sales_period(message: Message) -> None:
                          reply_markup=keyboard_select_scaledetail_sales())
 
 
-@router.callback_query(F.data.startswith('scalesales_'), lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data.startswith('scalesales_'))
 async def process_get_scaledetail(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_scaledetail: {callback.message.chat.id}')
     await state.update_data(scale_detail=callback.data.split('_')[1])
@@ -122,7 +122,7 @@ async def process_simple_calendar_finish(callback: CallbackQuery, callback_data:
 
 
 # ПРОДАЖИ - компания или менеджер для админа и менеджер для менеджера
-@router.callback_query(F.data == 'salesperiod_1', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'salesperiod_1')
 async def process_get_salesscale(callback: CallbackQuery, state: FSMContext) -> None:
     """
     Выбор менеджера или компании - для администратора
@@ -143,7 +143,7 @@ async def process_get_salesscale(callback: CallbackQuery, state: FSMContext) -> 
 
 
 # ПРОДАЖИ - менеджер
-@router.callback_query(F.data == 'salesmanager', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'salesmanager')
 async def process_get_stat_salesmanager(callback: CallbackQuery) -> None:
     """
     Выбор менеджера из списка (клавиатура) для которого требуется получить отчет
@@ -157,7 +157,7 @@ async def process_get_stat_salesmanager(callback: CallbackQuery) -> None:
 
 
 # ПРОДАЖИ - для выбранного менеджера
-@router.callback_query(F.data.startswith('salesmanager#'), lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data.startswith('salesmanager#'))
 async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: FSMContext) -> None:
     """
     Формирование отчета о продажах выбранного менеджера за выбранный период
@@ -179,7 +179,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
         today = datetime.now()
         tomorrow = today + timedelta(days=1)
         period_finish = tomorrow.strftime('%m/%d/%y')
-        print(period_start, period_finish)
+        # print(period_start, period_finish)
         list_date_start = period_start.split('/')
         date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
         list_date_finish = period_finish.split('/')
@@ -187,7 +187,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
     else:
         period_start = user_dict[callback.message.chat.id]['period_start']
         period_finish = user_dict[callback.message.chat.id]['period_finish']
-        print(period_start, period_finish)
+        # print(period_start, period_finish)
         list_date_start = period_start.split('/')
         date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
         list_date_finish = period_finish.split('/')
@@ -216,7 +216,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
             date_order = date(int(list_date_order[2]), int(list_date_order[0]), int(list_date_order[1]))
             # если дата выполнения заказа находится в периоде для предоставления отчета
             if (date_start <= date_order) and (date_order <= date_finish):
-                print(order)
+                # print(order)
                 # убираем пробелы слева и справа у категории
                 product_list = order[7].split()
                 product = ' '.join(product_list)
@@ -245,7 +245,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 num_mes += 1
                 # увеличиваем счетчик количество проданных продуктов в словаре
                 dict_order_product[product][give] += 1
-                print(dict_order_product)
+                # print(dict_order_product)
                 # увеличиваем сумму выполненных заказов
                 count += int(order[5].split('.')[0])
                 # формируем строку для вывода в сообщении
@@ -342,7 +342,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                           parse_mode='html')
 
 # ПРОДАЖИ - для всей компании
-@router.callback_query(F.data == 'salescompany', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'salescompany')
 async def process_get_stat_select_salescompany(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_select_salescompany: {callback.message.chat.id}')
     # обновляем данные словаря
@@ -359,7 +359,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
         today = datetime.now()
         tomorrow = today + timedelta(days=1)
         period_finish = tomorrow.strftime('%m/%d/%y')
-        print(period_start, period_finish)
+        # print(period_start, period_finish)
         list_date_start = period_start.split('/')
         date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
         list_date_finish = period_finish.split('/')
@@ -367,7 +367,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     else:
         period_start = user_dict[callback.message.chat.id]['period_start']
         period_finish = user_dict[callback.message.chat.id]['period_finish']
-        print(period_start, period_finish)
+        # print(period_start, period_finish)
         list_date_start = period_start.split('/')
         date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
         list_date_finish = period_finish.split('/')
@@ -568,7 +568,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                       reply_markup=keyboard_get_exel())
 
 
-@router.callback_query(F.data == 'exel', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'exel')
 async def process_get_exel(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_exel: {callback.message.chat.id}')
     file_path = "sales.xlsx"  # или "folder/filename.ext"

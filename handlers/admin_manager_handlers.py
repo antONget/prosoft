@@ -106,7 +106,7 @@ async def process_descriptiondel_user(callback: CallbackQuery, state: FSMContext
     logging.info(f'process_descriptiondel_user: {callback.message.chat.id}')
     user_dict[callback.message.chat.id] = await state.get_data()
     user_info = get_user(user_dict[callback.message.chat.id]["del_telegram_id"])
-    print('process_description', user_info, user_dict[callback.message.chat.id]["del_telegram_id"])
+    # print('process_description', user_info, user_dict[callback.message.chat.id]["del_telegram_id"])
     delete_user(user_dict[callback.message.chat.id]["del_telegram_id"])
     await callback.message.answer(text=f'Менеджер успешно удален')
     await asyncio.sleep(3)

@@ -30,7 +30,7 @@ async def process_get_statistic_period(message: Message) -> None:
 
 
 # Статистика - компания или менеджер для админа и менеджер для менеджера
-@router.callback_query(F.data.startswith('period'), lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data.startswith('period'))
 async def process_get_scale(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_scale: {callback.message.chat.id}')
     await state.update_data(period=callback.data.split('_')[1])
@@ -44,7 +44,7 @@ async def process_get_scale(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 # Статистика - менеджер
-@router.callback_query(F.data == 'manager', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'manager')
 async def process_get_stat_manager(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_manager: {callback.message.chat.id}')
     list_username = get_list_users()
@@ -53,53 +53,53 @@ async def process_get_stat_manager(callback: CallbackQuery, state: FSMContext) -
 
 
 # Статистика - для выбранного менеджера
-@router.callback_query(F.data.startswith('manager_'), lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data.startswith('manager_'))
 async def process_get_stat_select_manager(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_select_manager: {callback.message.chat.id}')
     user_name_manager = callback.data.split('_')[1]
     user_dict[callback.message.chat.id] = await state.update_data()
     period = int(user_dict[callback.message.chat.id]['period'])
     list_orders = get_list_orders()
-    print(list_orders)
+    # print(list_orders)
     count = 0
     current_date = datetime.now()
     date1 = current_date.strftime('%m/%d/%y')
     list_date1 = date1.split('/')
     date1 = date(int(list_date1[2]), int(list_date1[0]), int(list_date1[1]))
     for order in list_orders[1:]:
-        print(order)
+        # print(order)
         if user_name_manager in order:
             list_date2 = order[1].split('/')
             date2 = date(int(list_date2[2]), int(list_date2[0]), int(list_date2[1]))
             delta = (date1 - date2).days
-            print(delta)
+            # print(delta)
             if delta < period:
-                print(order[5])
+                # print(order[5])
                 count += int(order[5].split('.')[0])
     await callback.message.answer(text=f'Менеджер {user_name_manager} выполнил заказов на {count} ₽')
 
 
 # Статистика - для выбранного менеджера
-@router.callback_query(F.data == 'company', lambda callback: check_user(callback.message.chat.id))
+@router.callback_query(F.data == 'company')
 async def process_get_stat_select_company(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_stat_select_company: {callback.message.chat.id}')
     user_dict[callback.message.chat.id] = await state.update_data()
     period = int(user_dict[callback.message.chat.id]['period'])
     list_orders = get_list_orders()
-    print(list_orders)
+    # print(list_orders)
     count = 0
     current_date = datetime.now()
     date1 = current_date.strftime('%m/%d/%y')
     list_date1 = date1.split('/')
     date1 = date(int(list_date1[2]), int(list_date1[0]), int(list_date1[1]))
     for order in list_orders[1:]:
-        print(order)
+        # print(order)
 
         list_date2 = order[1].split('/')
         date2 = date(int(list_date2[2]), int(list_date2[0]), int(list_date2[1]))
         delta = (date1 - date2).days
-        print(delta)
+        # print(delta)
         if delta < period:
-            print(order[5])
+            # print(order[5])
             count += int(order[5].split('.')[0])
     await callback.message.answer(text=f'Компания выполнила заказов на {count} ₽')

@@ -51,7 +51,7 @@ async def get_token_user(message: Message, bot: Bot) -> None:
         await message.answer(text='Вы верифицированы',
                              reply_markup=keyboards_manager())
         list_admin = config.tg_bot.admin_ids.split(',')
-        print(list_admin)
+        # print(list_admin)
         for admin_id in list_admin:
             try:
                 await bot.send_message(chat_id=int(admin_id),
