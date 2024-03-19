@@ -8,6 +8,7 @@ from handlers import admin_main_handlers, admin_manager_handlers, admin_rest_key
 from handlers import user_auth_handler, manager_keys_handlers, manager_sales
 from handlers import other_handlers
 from handlers.admin_rest_keys import process_sheduler
+from handlers.manager_sales import process_sendler_stat_scheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from middlewares.outer import Middleware_message, Middleware_callback
 from handlers.manager_keys_handlers import router as router_user
@@ -37,6 +38,7 @@ async def main():
     dp = Dispatcher()
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(process_sheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
+    scheduler.add_job(process_sendler_stat_scheduler, 'cron', hour=0, minute=0, second=0, args=(bot,))
     scheduler.start()
     # Регистрируем router в диспетчере
     dp.include_router(admin_main_handlers.router)

@@ -3,7 +3,7 @@ import openpyxl, xlsxwriter
 
 
 def list_sales_to_exel(list_sales: list, date_report: str, count: int, cost_price: int, marginality: float,
-                       net_profit: int, dict_order_product: dict):
+                       net_profit: int, dict_order_product: dict, admin: bool = True):
     date_report_ = date_report.replace('/', '.')
     dict_sales = {"№ заказа": [], "дата": [], "время": [], "@username": [], "ключ": [], "стоимость": [],
                   "категория": [], "продукт": [], "тип выдачи": [], "новый ключ": []}
@@ -22,8 +22,11 @@ def list_sales_to_exel(list_sales: list, date_report: str, count: int, cost_pric
     for key in dict_sales.keys():
         print(key, len(dict_sales[key]))
     df_sales = pd.DataFrame(dict_sales)
-    dict_report = {"Сумма продаж": [count, None, None], "Себестоимость": [cost_price, None, None],
-                   "Маржинальность": [marginality, None, None], "Чистая прибыль": [net_profit, None, None]}
+    if admin:
+        dict_report = {"Сумма продаж": [count, None, None], "Себестоимость": [cost_price, None, None],
+                       "Маржинальность": [marginality, None, None], "Чистая прибыль": [net_profit, None, None]}
+    else:
+        dict_report = {}
     for category, dict_poduct in dict_order_product.items():
         dict_report[category] = []
         for product, num in dict_poduct.items():
