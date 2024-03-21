@@ -699,7 +699,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                 else:
                     dict_order_product[manager][product] = {give: 0}
             else:
-                dict_order_product[manager] = {product: {give: 0}}
+                dict_order_product[manager] = {product: {give: 0}, 'count': 0}
 
             if 'company' in dict_order_product.keys():
                 if product in dict_order_product['company'].keys():
@@ -719,7 +719,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
             # увеличиваем сумму выполненных заказов
             count += int(order[5].split('.')[0])
             # формируем строку для вывода в сообщении
-
+            dict_order_product[manager]['count'] += int(order[5].split('.')[0])
             # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
             list_finance_data.append(order[5])
             cost_price += float(order[5].split('/')[1].split()[0])
@@ -755,6 +755,8 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                                    parse_mode='html')
     list_user = get_list_users()
     total_text = ''
+    # количество проданных продуктов
+    total_order = 0
     for manager in dict_order_product.keys():
         for user in list_user:
             if user[1] == manager:
@@ -762,6 +764,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                     total_text += f'<b>{key_product}:</b>\n'
                     for key_give, value_give in value_product.items():
                         total_text += f'<i>{key_give}:</i> {value_give}\n'
+                        count += 1
                         total_order += value_give
                     total_text += '--------------\n'
                 result = get_telegram_user(user_id=int(user[0]), bot_token=config.tg_bot.token)
@@ -770,7 +773,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                                            text=f'<b>Отчет о продажах менеджера {user[1]} за '
                                                 f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
                                                 f'{total_text}\n'
-                                                f'Выполнено заказов на: {count} ₽\n'
+                                                f'Выполнено заказов на: {dict_order_product[manager]["count"]} ₽\n'
                                                 f'Количество продаж: {total_order} шт.',
                                            parse_mode='html')
 
