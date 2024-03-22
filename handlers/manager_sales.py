@@ -300,6 +300,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                            f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                            f'У менеджера нет выполненных заказов',
                                       parse_mode='html')
+        break
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
     if scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
@@ -528,6 +529,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                            f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                            f'Нет выполненных заказов',
                                       parse_mode='html')
+        break
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
     if scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
