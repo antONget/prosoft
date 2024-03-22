@@ -295,6 +295,11 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 list_orders_filter.append(order)
     # добавляем строки с заказами для последнего сообщения
     list_text.append(text)
+    if len(list_finance_data) == 0:
+        await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
+                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
+                                           f'У менеджера нет выполненных заказов',
+                                      parse_mode='html')
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
     if scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
@@ -518,6 +523,11 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     # print(list_finance_data)
     # добавляем строки с заказами для последнего сообщения
     list_text.append(text)
+    if len(list_finance_data) == 0:
+        await callback.message.answer(text=f'<b>Отчет о продажах компании за '
+                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
+                                           f'Нет выполненных заказов',
+                                      parse_mode='html')
     scale_detail = user_dict[callback.message.chat.id]['scale_detail']
     if scale_detail == 'details':
         if int(user_dict[callback.message.chat.id]['salesperiod']):
