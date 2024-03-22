@@ -300,110 +300,110 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                            f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                            f'У менеджера нет выполненных заказов',
                                       parse_mode='html')
-        break
-    scale_detail = user_dict[callback.message.chat.id]['scale_detail']
-    if scale_detail == 'details':
-        if int(user_dict[callback.message.chat.id]['salesperiod']):
-            # если список с заказами не пустой
-            if list_text:
-                # то отправляем сообщения с выполненными заказами
-                for text_message in list_text:
+
+        scale_detail = user_dict[callback.message.chat.id]['scale_detail']
+        if scale_detail == 'details':
+            if int(user_dict[callback.message.chat.id]['salesperiod']):
+                # если список с заказами не пустой
+                if list_text:
+                    # то отправляем сообщения с выполненными заказами
+                    for text_message in list_text:
+                        await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
+                                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}'
+                                                           f':</b>\n'
+                                                           f'{text_message}\n\n',
+                                                      parse_mode='html')
+                else:
+                    # выводим пустую строку
                     await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
                                                        f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}'
                                                        f':</b>\n'
-                                                       f'{text_message}\n\n',
+                                                       f'{text}\n\n',
                                                   parse_mode='html')
+                # if chek_admin(telegram_id=callback.message.chat.id):
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality / len(list_finance_data), 2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product,
+                                   admin=chek_admin(telegram_id=callback.message.chat.id))
             else:
-                # выводим пустую строку
-                await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
-                                                   f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}'
-                                                   f':</b>\n'
-                                                   f'{text}\n\n',
-                                              parse_mode='html')
-            # if chek_admin(telegram_id=callback.message.chat.id):
-            list_sales_to_exel(list_sales=list_orders_filter,
-                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                               count=count,
-                               cost_price=cost_price,
-                               marginality=round(marginality / len(list_finance_data), 2),
-                               net_profit=net_profit,
-                               dict_order_product=dict_order_product,
-                               admin=chek_admin(telegram_id=callback.message.chat.id))
-        else:
-            count_days = (date_finish - date_start).days + 1
-            # если список с заказами не пустой
-            if list_text:
-                # то отправляем сообщения с выполненными заказами
-                for text_message in list_text:
+                count_days = (date_finish - date_start).days + 1
+                # если список с заказами не пустой
+                if list_text:
+                    # то отправляем сообщения с выполненными заказами
+                    for text_message in list_text:
+                        await callback.message.answer(text=f'<b>Отчет о продажах менеджера за {count_days} дня (дней) c'
+                                                           f' {list_date_start[1]}/{list_date_start[0]}/'
+                                                           f'{list_date_start[2]} по {list_date_finish[1]}/'
+                                                           f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
+                                                           f'{text_message}\n\n',
+                                                      parse_mode='html')
+                else:
+                    # выводим пустую строку
                     await callback.message.answer(text=f'<b>Отчет о продажах менеджера за {count_days} дня (дней) c'
                                                        f' {list_date_start[1]}/{list_date_start[0]}/'
                                                        f'{list_date_start[2]} по {list_date_finish[1]}/'
                                                        f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
-                                                       f'{text_message}\n\n',
+                                                       f'{text}\n\n',
                                                   parse_mode='html')
+
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
+                                               f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
+                                               f'{list_date_finish[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality / len(list_finance_data), 2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product,
+                                   admin=chek_admin(telegram_id=callback.message.chat.id))
+
+        if scale_detail == 'total' or scale_detail == 'details':
+            if int(user_dict[callback.message.chat.id]['salesperiod']):
+                # инициализируем переменную для сообщения для итоговых данных
+                total_text = ''
+                # количество проданных продуктов
+                total_order = 0
+                # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+                for key_product, value_product in dict_order_product.items():
+                    total_text += f'<b>{key_product}:</b>\n'
+                    for key_give, value_give in value_product.items():
+                        total_text += f'<i>{key_give}:</i> {value_give}\n'
+                        total_order += value_give
+                    total_text += '--------------\n'
+                await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
+                                                   f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
+                                                   f'{total_text}\n\n'
+                                                   f'Менеджер выполнил заказов на {count} ₽\n'
+                                                   f'Количество продаж: {total_order} шт.',
+                                              parse_mode='html')
             else:
-                # выводим пустую строку
+                count_days = (date_finish - date_start).days + 1
+                # инициализируем переменную для сообщения для итоговых данных
+                total_text = ''
+                # количество проданных продуктов
+                total_order = 0
+                # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+                for key_product, value_product in dict_order_product.items():
+                    total_text += f'<b>{key_product}:</b>\n'
+                    for key_give, value_give in value_product.items():
+                        total_text += f'<i>{key_give}:</i> {value_give}\n'
+                        total_order += value_give
+                    total_text += '--------------\n'
                 await callback.message.answer(text=f'<b>Отчет о продажах менеджера за {count_days} дня (дней) c'
                                                    f' {list_date_start[1]}/{list_date_start[0]}/'
                                                    f'{list_date_start[2]} по {list_date_finish[1]}/'
-                                                   f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
-                                                   f'{text}\n\n',
+                                                   f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n\n'
+                                                   f'{total_text}\n\n'
+                                                   f'Менеджер выполнил заказов на {count} ₽\n'
+                                                   f'Количество продаж: {total_order} шт.',
                                               parse_mode='html')
-
-            list_sales_to_exel(list_sales=list_orders_filter,
-                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
-                                           f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
-                                           f'{list_date_finish[2]}',
-                               count=count,
-                               cost_price=cost_price,
-                               marginality=round(marginality / len(list_finance_data), 2),
-                               net_profit=net_profit,
-                               dict_order_product=dict_order_product,
-                               admin=chek_admin(telegram_id=callback.message.chat.id))
-
-    if scale_detail == 'total' or scale_detail == 'details':
-        if int(user_dict[callback.message.chat.id]['salesperiod']):
-            # инициализируем переменную для сообщения для итоговых данных
-            total_text = ''
-            # количество проданных продуктов
-            total_order = 0
-            # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
-            for key_product, value_product in dict_order_product.items():
-                total_text += f'<b>{key_product}:</b>\n'
-                for key_give, value_give in value_product.items():
-                    total_text += f'<i>{key_give}:</i> {value_give}\n'
-                    total_order += value_give
-                total_text += '--------------\n'
-            await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
-                                               f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
-                                               f'{total_text}\n\n'
-                                               f'Менеджер выполнил заказов на {count} ₽\n'
-                                               f'Количество продаж: {total_order} шт.',
-                                          parse_mode='html')
-        else:
-            count_days = (date_finish - date_start).days + 1
-            # инициализируем переменную для сообщения для итоговых данных
-            total_text = ''
-            # количество проданных продуктов
-            total_order = 0
-            # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
-            for key_product, value_product in dict_order_product.items():
-                total_text += f'<b>{key_product}:</b>\n'
-                for key_give, value_give in value_product.items():
-                    total_text += f'<i>{key_give}:</i> {value_give}\n'
-                    total_order += value_give
-                total_text += '--------------\n'
-            await callback.message.answer(text=f'<b>Отчет о продажах менеджера за {count_days} дня (дней) c'
-                                               f' {list_date_start[1]}/{list_date_start[0]}/'
-                                               f'{list_date_start[2]} по {list_date_finish[1]}/'
-                                               f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n\n'
-                                               f'{total_text}\n\n'
-                                               f'Менеджер выполнил заказов на {count} ₽\n'
-                                               f'Количество продаж: {total_order} шт.',
-                                          parse_mode='html')
-    if scale_detail == 'details':
-        await callback.message.answer(text='Получить отчет в виде файла exel',
-                                      reply_markup=keyboard_get_exel())
+        if scale_detail == 'details':
+            await callback.message.answer(text='Получить отчет в виде файла exel',
+                                          reply_markup=keyboard_get_exel())
 
 # ПРОДАЖИ - для всей компании
 @router.callback_query(F.data == 'salescompany')
@@ -529,113 +529,113 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                            f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                            f'Нет выполненных заказов',
                                       parse_mode='html')
-        break
-    scale_detail = user_dict[callback.message.chat.id]['scale_detail']
-    if scale_detail == 'details':
-        if int(user_dict[callback.message.chat.id]['salesperiod']):
-            # если список с заказами не пустой
-            if list_text:
-                # то отправляем сообщения с выполненными заказами
-                for text_message in list_text:
-                    await callback.message.answer(text=f'<b>Отчет о продажах компании за '
-                                                       f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}'
-                                                       f':</b>\n'
-                                                       f'{text_message}\n\n',
+
+        scale_detail = user_dict[callback.message.chat.id]['scale_detail']
+        if scale_detail == 'details':
+            if int(user_dict[callback.message.chat.id]['salesperiod']):
+                # если список с заказами не пустой
+                if list_text:
+                    # то отправляем сообщения с выполненными заказами
+                    for text_message in list_text:
+                        await callback.message.answer(text=f'<b>Отчет о продажах компании за '
+                                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}'
+                                                           f':</b>\n'
+                                                           f'{text_message}\n\n',
+                                                      parse_mode='html')
+                else:
+                    # выводим пустую строку
+                    await callback.message.answer(text=f'<b>Отчет о продажах компании за {list_date_start[1]}/'
+                                                       f'{list_date_start[0]}/{list_date_start[2]}:</b>\n'
+                                                       f'{text}\n\n',
                                                   parse_mode='html')
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality / len(list_finance_data), 2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product)
+                # file_path = "sales.xlsx"  # или "folder/filename.ext"
+                # await callback.message.answer_document(FSInputFile(file_path))
             else:
-                # выводим пустую строку
-                await callback.message.answer(text=f'<b>Отчет о продажах компании за {list_date_start[1]}/'
-                                                   f'{list_date_start[0]}/{list_date_start[2]}:</b>\n'
-                                                   f'{text}\n\n',
-                                              parse_mode='html')
-            list_sales_to_exel(list_sales=list_orders_filter,
-                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                               count=count,
-                               cost_price=cost_price,
-                               marginality=round(marginality / len(list_finance_data), 2),
-                               net_profit=net_profit,
-                               dict_order_product=dict_order_product)
-            # file_path = "sales.xlsx"  # или "folder/filename.ext"
-            # await callback.message.answer_document(FSInputFile(file_path))
-        else:
-            count_days = (date_finish - date_start).days + 1
-            # если список с заказами не пустой
-            if list_text:
-                # то отправляем сообщения с выполненными заказами
-                for text_message in list_text:
+                count_days = (date_finish - date_start).days + 1
+                # если список с заказами не пустой
+                if list_text:
+                    # то отправляем сообщения с выполненными заказами
+                    for text_message in list_text:
+                        await callback.message.answer(text=f'<b>Отчет о продажах компании за {count_days} дня (дней) c'
+                                                           f' {list_date_start[1]}/{list_date_start[0]}/'
+                                                           f'{list_date_start[2]} по {list_date_finish[1]}/'
+                                                           f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
+                                                           f'{text_message}\n\n',
+                                                      parse_mode='html')
+                else:
+                    # выводим пустую строку
                     await callback.message.answer(text=f'<b>Отчет о продажах компании за {count_days} дня (дней) c'
                                                        f' {list_date_start[1]}/{list_date_start[0]}/'
                                                        f'{list_date_start[2]} по {list_date_finish[1]}/'
                                                        f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
-                                                       f'{text_message}\n\n',
+                                                       f'{text}\n\n',
                                                   parse_mode='html')
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
+                                               f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
+                                               f'{list_date_finish[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality/len(list_finance_data),2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product)
+
+        if scale_detail == 'total' or scale_detail == 'details':
+            if int(user_dict[callback.message.chat.id]['salesperiod']):
+                # инициализируем переменную для сообщения для итоговых данных
+                total_text = ''
+                # количество проданных продуктов
+                total_order = 0
+                # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+                for key_product, value_product in dict_order_product.items():
+                    total_text += f'<b>{key_product}:</b>\n'
+                    for key_give, value_give in value_product.items():
+                        total_text += f'<i>{key_give}:</i> {value_give}\n'
+                        total_order += value_give
+                    total_text += '--------------\n'
+                await callback.message.answer(text=f'<b>Отчет о продажах компании за '
+                                                   f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
+                                                   f'{total_text}\n'
+                                                   f'Компания выполнила заказов на {count} ₽\n'
+                                                   f'Себестоимость: {cost_price} ₽\n'
+                                                   f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                                   f'Чистая прибыль: {net_profit} ₽\n'
+                                                   f'Количество продаж: {total_order} шт.',
+                                              parse_mode='html')
             else:
-                # выводим пустую строку
+                count_days = (date_finish - date_start).days + 1
+                # инициализируем переменную для сообщения для итоговых данных
+                total_text = ''
+                # количество проданных продуктов
+                total_order = 0
+                # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+                for key_product, value_product in dict_order_product.items():
+                    total_text += f'<b>{key_product}:</b>\n'
+                    for key_give, value_give in value_product.items():
+                        total_text += f'<i>{key_give}:</i> {value_give}\n'
+                        total_order += value_give
+                    total_text += '--------------\n'
                 await callback.message.answer(text=f'<b>Отчет о продажах компании за {count_days} дня (дней) c'
                                                    f' {list_date_start[1]}/{list_date_start[0]}/'
                                                    f'{list_date_start[2]} по {list_date_finish[1]}/'
-                                                   f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
-                                                   f'{text}\n\n',
+                                                   f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n\n'
+                                                   f'{total_text}\n'
+                                                   f'Компания выполнила заказов на {count} ₽\n'
+                                                   f'Себестоимость: {cost_price} ₽\n'
+                                                   f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                                   f'Чистая прибыль: {net_profit} ₽\n'
+                                                   f'Количество продаж: {total_order} шт.',
                                               parse_mode='html')
-            list_sales_to_exel(list_sales=list_orders_filter,
-                               date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
-                                           f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
-                                           f'{list_date_finish[2]}',
-                               count=count,
-                               cost_price=cost_price,
-                               marginality=round(marginality/len(list_finance_data),2),
-                               net_profit=net_profit,
-                               dict_order_product=dict_order_product)
-
-    if scale_detail == 'total' or scale_detail == 'details':
-        if int(user_dict[callback.message.chat.id]['salesperiod']):
-            # инициализируем переменную для сообщения для итоговых данных
-            total_text = ''
-            # количество проданных продуктов
-            total_order = 0
-            # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
-            for key_product, value_product in dict_order_product.items():
-                total_text += f'<b>{key_product}:</b>\n'
-                for key_give, value_give in value_product.items():
-                    total_text += f'<i>{key_give}:</i> {value_give}\n'
-                    total_order += value_give
-                total_text += '--------------\n'
-            await callback.message.answer(text=f'<b>Отчет о продажах компании за '
-                                               f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
-                                               f'{total_text}\n'
-                                               f'Компания выполнила заказов на {count} ₽\n'
-                                               f'Себестоимость: {cost_price} ₽\n'
-                                               f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
-                                               f'Чистая прибыль: {net_profit} ₽\n'
-                                               f'Количество продаж: {total_order} шт.',
-                                          parse_mode='html')
-        else:
-            count_days = (date_finish - date_start).days + 1
-            # инициализируем переменную для сообщения для итоговых данных
-            total_text = ''
-            # количество проданных продуктов
-            total_order = 0
-            # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
-            for key_product, value_product in dict_order_product.items():
-                total_text += f'<b>{key_product}:</b>\n'
-                for key_give, value_give in value_product.items():
-                    total_text += f'<i>{key_give}:</i> {value_give}\n'
-                    total_order += value_give
-                total_text += '--------------\n'
-            await callback.message.answer(text=f'<b>Отчет о продажах компании за {count_days} дня (дней) c'
-                                               f' {list_date_start[1]}/{list_date_start[0]}/'
-                                               f'{list_date_start[2]} по {list_date_finish[1]}/'
-                                               f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n\n'
-                                               f'{total_text}\n'
-                                               f'Компания выполнила заказов на {count} ₽\n'
-                                               f'Себестоимость: {cost_price} ₽\n'
-                                               f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
-                                               f'Чистая прибыль: {net_profit} ₽\n'
-                                               f'Количество продаж: {total_order} шт.',
-                                          parse_mode='html')
-    if scale_detail == 'details':
-        await callback.message.answer(text='Получить отчет в виде файла exel',
-                                      reply_markup=keyboard_get_exel())
+        if scale_detail == 'details':
+            await callback.message.answer(text='Получить отчет в виде файла exel',
+                                          reply_markup=keyboard_get_exel())
 
 
 @router.callback_query(F.data == 'exel')
