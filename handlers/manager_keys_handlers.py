@@ -68,7 +68,7 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                                   f'дата: {info_order[1]}-{info_order[2]}\n'
                                   f'Менеджер: {info_order[3]}\n'
                                   f'Ключ: <code>{info_order[4]}</code>\n'
-                                  f'Стоимость: {info_order[5]}\n'
+                                  f'Стоимость: {info_order[5].split(".")[0]} ₽\n'
                                   f'Категория {info_order[6]} - продукт {info_order[7]}',
                              parse_mode='html')
         new_key = ''
