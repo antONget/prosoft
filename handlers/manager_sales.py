@@ -774,6 +774,8 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
             if user[1] == manager:
                 for key_product, value_product in dict_order_product[manager].items():
                     total_text += f'<b>{key_product}:</b>\n'
+                    logging.info(f'manager:{manager}')
+                    logging.info(f'value_product:{value_product}')
                     for key_give, value_give in value_product.items():
                         total_text += f'<i>{key_give}:</i> {value_give}\n'
                         count += 1
