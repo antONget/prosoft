@@ -320,15 +320,24 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                        f':</b>\n'
                                                        f'{text}\n\n',
                                                   parse_mode='html')
-                # if chek_admin(telegram_id=callback.message.chat.id):
-                list_sales_to_exel(list_sales=list_orders_filter,
-                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                                   count=count,
-                                   cost_price=cost_price,
-                                   marginality=round(marginality / len(list_finance_data), 2),
-                                   net_profit=net_profit,
-                                   dict_order_product=dict_order_product,
-                                   admin=chek_admin(telegram_id=callback.message.chat.id))
+                if chek_admin(telegram_id=callback.message.chat.id):
+                    list_sales_to_exel(list_sales=list_orders_filter,
+                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                       count=count,
+                                       cost_price=cost_price,
+                                       marginality=round(marginality / len(list_finance_data), 2),
+                                       net_profit=net_profit,
+                                       dict_order_product=dict_order_product,
+                                       admin=chek_admin(telegram_id=callback.message.chat.id))
+                else:
+                    list_sales_to_exel(list_sales=list_orders_filter,
+                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                       count=count,
+                                       cost_price=0,
+                                       marginality=0,
+                                       net_profit=0,
+                                       dict_order_product=dict_order_product,
+                                       admin=chek_admin(telegram_id=callback.message.chat.id))
             else:
                 count_days = (date_finish - date_start).days + 1
                 # если список с заказами не пустой
@@ -349,17 +358,26 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                        f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
                                                        f'{text}\n\n',
                                                   parse_mode='html')
-
-                list_sales_to_exel(list_sales=list_orders_filter,
-                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
-                                               f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
-                                               f'{list_date_finish[2]}',
-                                   count=count,
-                                   cost_price=0,#'cost_price',
-                                   marginality=0,#round(marginality / len(list_finance_data), 2),
-                                   net_profit=0,#net_profit,
-                                   dict_order_product=dict_order_product,
-                                   admin=chek_admin(telegram_id=callback.message.chat.id))
+                if chek_admin(telegram_id=callback.message.chat.id):
+                    list_sales_to_exel(list_sales=list_orders_filter,
+                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                       count=count,
+                                       cost_price=cost_price,
+                                       marginality=round(marginality / len(list_finance_data), 2),
+                                       net_profit=net_profit,
+                                       dict_order_product=dict_order_product,
+                                       admin=chek_admin(telegram_id=callback.message.chat.id))
+                else:
+                    list_sales_to_exel(list_sales=list_orders_filter,
+                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
+                                                   f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
+                                                   f'{list_date_finish[2]}',
+                                       count=count,
+                                       cost_price=0,#'cost_price',
+                                       marginality=0,#round(marginality / len(list_finance_data), 2),
+                                       net_profit=0,#net_profit,
+                                       dict_order_product=dict_order_product,
+                                       admin=chek_admin(telegram_id=callback.message.chat.id))
 
         if scale_detail == 'total' or scale_detail == 'details':
             if int(user_dict[callback.message.chat.id]['salesperiod']):
