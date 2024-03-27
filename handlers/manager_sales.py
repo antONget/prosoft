@@ -355,9 +355,9 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
                                                f'{list_date_finish[2]}',
                                    count=count,
-                                   cost_price=cost_price,
-                                   marginality=round(marginality / len(list_finance_data), 2),
-                                   net_profit=net_profit,
+                                   cost_price=0,#'cost_price',
+                                   marginality=0,#round(marginality / len(list_finance_data), 2),
+                                   net_profit=0,#net_profit,
                                    dict_order_product=dict_order_product,
                                    admin=chek_admin(telegram_id=callback.message.chat.id))
 
@@ -775,6 +775,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                 for key_product, value_product in dict_order_product[manager].items():
                     total_text += f'<b>{key_product}:</b>\n'
                     logging.info(f'manager:{manager}')
+                    logging.info(f'dict_order_product[manager]: {dict_order_product[manager]}')
                     logging.info(f'value_product:{value_product}')
                     for key_give, value_give in value_product.items():
                         total_text += f'<i>{key_give}:</i> {value_give}\n'
