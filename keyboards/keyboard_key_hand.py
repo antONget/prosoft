@@ -90,3 +90,14 @@ def keyboard_select_project_handkeys() -> None:
     button_1 = InlineKeyboardButton(text='Project 2019 Pro', callback_data='handgetkey#Project 2019 Pro')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
     return keyboard
+
+
+def keyboard_cancel_hand_key() -> None:
+    """
+    КЛЮЧ - [Ручной ввод] - Категории - Project - отмена добавления ключа
+    :return:
+    """
+    logging.info("keyboard_cancel_hand_key")
+    button_1 = InlineKeyboardButton(text='Отмена', callback_data='cancel_hand_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
+    return keyboard

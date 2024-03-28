@@ -13,7 +13,7 @@ from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
-    keyboard_select_project_handkeys
+    keyboard_select_project_handkeys, keyboard_cancel_hand_key
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
@@ -642,7 +642,8 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
     cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     await state.update_data(cost_hand=cost_hand)
     await state.update_data(product_hand=product)
-    await callback.message.answer(text=f'Пришлите ключ для добавления')
+    await callback.message.answer(text=f'Пришлите ключ для добавления',
+                                  reply_markup=keyboard_cancel_hand_key())
     await state.set_state(Keys.get_key_hand)
 
 
@@ -664,4 +665,11 @@ async def process_input_get_key_hand(message: Message, state: FSMContext):
                  type_give='hand',
                  id_product='-')
     await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    await state.set_state(default_state)
+
+
+@router.callback_query(F.data == 'cancel_hand_key')
+async def process_hand_keys_product_cancel(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_hand_keys_product_cancel: {callback.message.chat.id}')
+    await callback.message.answer('Добавление ключа вручную отменено')
     await state.set_state(default_state)
