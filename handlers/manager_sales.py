@@ -517,7 +517,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
             # увеличиваем сумму выполненных заказов
             count += int(order[5].split('.')[0]) * count_key
             # формируем строку для вывода в сообщении
-            text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]} ₽\n"
+            text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {count_key}*{order[5].split('₽')[0]} ₽\n"
             if date_order >= date(24, 3, 18):
                 # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
 
