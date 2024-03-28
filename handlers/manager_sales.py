@@ -273,7 +273,7 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 # увеличиваем сумму выполненных заказов
                 count += int(order[5].split('.')[0]) * count_key
                 # формируем строку для вывода в сообщении
-                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]}*{count_key} ₽\n"
+                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {count_key}*{order[5].split('₽')[0]} ₽\n"
                 # если заказ выполнене до 18 марта 2024 года, то используем для расчета финансовых данных словарь
                 if date_order >= date(24, 3, 18):
                     # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
@@ -473,6 +473,8 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
     cost_price = 0
     net_profit = 0
     marginality = 0
+    # количество ключей выданных запериод
+    count_key_period = 0
     # проходимся по всему списку заказов
     for order in list_orders[1:]:
         # разбиваем дату выполнения заказа
@@ -506,19 +508,23 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
             num += 1
             # увеличиваем счетчик для ограничения длины сообщения
             num_mes += 1
+            # количество ключей в заказе
+            count_key = int(len(order[4].split(',')))
             # увеличиваем счетчик количество проданных продуктов в словаре
-            dict_order_product[product][give] += 1
+            dict_order_product[product][give] += count_key
+            # увеличиваем количество ключей за период
+            count_key_period += count_key
             # увеличиваем сумму выполненных заказов
-            count += int(order[5].split('.')[0])
+            count += int(order[5].split('.')[0]) * count_key
             # формируем строку для вывода в сообщении
             text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]} ₽\n"
             if date_order >= date(24, 3, 18):
                 # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
 
                 list_finance_data.append(order[5])
-                cost_price += float(order[5].split('/')[1].split()[0])
-                net_profit += float(order[5].split('/')[3].split()[0])
-                marginality += float(order[5].split('/')[2])
+                cost_price += float(order[5].split('/')[1].split()[0]) * count_key
+                net_profit += float(order[5].split('/')[3].split()[0]) * count_key
+                marginality += float(order[5].split('/')[2]) * count_key
             else:
                 product = order[7].strip()
                 # product = ' '.join()
@@ -526,9 +532,9 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                          f'{dict_sales[product][order[8]][0]}/'
                                          f'{dict_sales[product][order[8]][2]}/'
                                          f'{dict_sales[product][order[8]][3]}')
-                cost_price += float(dict_sales[product][order[8]][0].split()[0])
-                net_profit += float(dict_sales[product][order[8]][3].split()[0])
-                marginality += float(dict_sales[product][order[8]][2])
+                cost_price += float(dict_sales[product][order[8]][0].split()[0]) * count_key
+                net_profit += float(dict_sales[product][order[8]][3].split()[0]) * count_key
+                marginality += float(dict_sales[product][order[8]][2]) * count_key
             # проверяем длину сообщения
             if num_mes > 39:
                 # обнуляем длину сообщения
@@ -570,7 +576,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                    date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
                                    count=count,
                                    cost_price=cost_price,
-                                   marginality=round(marginality / len(list_finance_data), 2),
+                                   marginality=round(marginality / count_key_period, 2),
                                    net_profit=net_profit,
                                    dict_order_product=dict_order_product)
                 # file_path = "sales.xlsx"  # или "folder/filename.ext"
@@ -601,7 +607,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                f'{list_date_finish[2]}',
                                    count=count,
                                    cost_price=cost_price,
-                                   marginality=round(marginality/len(list_finance_data),2),
+                                   marginality=round(marginality / count_key_period,2),
                                    net_profit=net_profit,
                                    dict_order_product=dict_order_product)
 
@@ -623,7 +629,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                    f'{total_text}\n'
                                                    f'Компания выполнила заказов на {count} ₽\n'
                                                    f'Себестоимость: {cost_price} ₽\n'
-                                                   f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                                   f'Маржинальность: {round(marginality / count_key_period,2)}%\n' 
                                                    f'Чистая прибыль: {net_profit} ₽\n'
                                                    f'Количество продаж: {total_order} шт.',
                                               parse_mode='html')
@@ -647,7 +653,7 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
                                                    f'{total_text}\n'
                                                    f'Компания выполнила заказов на {count} ₽\n'
                                                    f'Себестоимость: {cost_price} ₽\n'
-                                                   f'Маржинальность: {round(marginality/len(list_finance_data),2)}%\n' 
+                                                   f'Маржинальность: {round(marginality / count_key_period,2)}%\n' 
                                                    f'Чистая прибыль: {net_profit} ₽\n'
                                                    f'Количество продаж: {total_order} шт.',
                                               parse_mode='html')
@@ -698,6 +704,8 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
     cost_price = 0
     net_profit = 0
     marginality = 0
+    # количество ключей выданных запериод
+    count_key_period = 0
     # проходимся по всему списку заказов
     for order in list_orders[1:]:
         # разбиваем дату выполнения заказа
@@ -742,19 +750,21 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
             else:
                 dict_order_product['company'] = {product: {give: 0}}
 
-
+            # количество ключей в заказе
+            count_key = int(len(order[4].split(',')))
+            count_key_period += count_key
             # увеличиваем счетчик количество проданных продуктов в словаре
-            dict_order_product[manager][product][give] += 1
-            dict_order_product['company'][product][give] += 1
+            dict_order_product[manager][product][give] += count_key
+            dict_order_product['company'][product][give] += count_key
             # увеличиваем сумму выполненных заказов
-            count += int(order[5].split('.')[0])
+            count += int(order[5].split('.')[0]) * count_key
             # формируем строку для вывода в сообщении
-            dict_order_product[manager]['count'] += int(order[5].split('.')[0])
+            dict_order_product[manager]['count'] += int(order[5].split('.')[0]) * count_key
             # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
             list_finance_data.append(order[5])
-            cost_price += float(order[5].split('/')[1].split()[0])
-            net_profit += float(order[5].split('/')[3].split()[0])
-            marginality += float(order[5].split('/')[2])
+            cost_price += float(order[5].split('/')[1].split()[0]) * count_key
+            net_profit += float(order[5].split('/')[3].split()[0]) * count_key
+            marginality += float(order[5].split('/')[2]) * count_key
 
             list_orders_filter.append(order)
 
@@ -779,7 +789,7 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                                         f'{total_text}\n'
                                         f'Компания выполнила заказов на {count} ₽\n'
                                         f'Себестоимость: {cost_price} ₽\n'
-                                        f'Маржинальность: {round(marginality / len(list_finance_data), 2)}%\n'
+                                        f'Маржинальность: {round(marginality / count_key_period, 2)}%\n'
                                         f'Чистая прибыль: {net_profit} ₽\n'
                                         f'Количество продаж: {total_order} шт.',
                                    parse_mode='html')
