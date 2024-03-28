@@ -224,6 +224,8 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
     cost_price = 0
     net_profit = 0
     marginality = 0
+    # количество ключей выданных запериод
+    count_key_period = 0
     # проходимся по всему списку заказов
     for order in list_orders[1:]:
         # отбираем заказы выполненные выбранным менеджером
@@ -260,20 +262,26 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 num += 1
                 # увеличиваем счетчик для ограничения длины сообщения
                 num_mes += 1
+                # количество ключей в заказе
+                count_key = int(len(order[4].split(',')))
                 # увеличиваем счетчик количество проданных продуктов в словаре
-                dict_order_product[product][give] += 1
+                dict_order_product[product][give] += count_key
                 # print(dict_order_product)
+
+                # увеличиваем количество ключей за период
+                count_key_period += count_key
                 # увеличиваем сумму выполненных заказов
-                count += int(order[5].split('.')[0])
+                count += int(order[5].split('.')[0]) * count_key
                 # формируем строку для вывода в сообщении
-                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]} ₽\n"
+                text += f"{num}) Номер заказа: {order[0]} от {order[1]} менеджер {order[3]} стоимость {order[5].split('₽')[0]}*{count_key} ₽\n"
+                # если заказ выполнене до 18 марта 2024 года, то используем для расчета финансовых данных словарь
                 if date_order >= date(24, 3, 18):
                     # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
 
                     list_finance_data.append(order[5])
-                    cost_price += float(order[5].split('/')[1].split()[0])
-                    net_profit += float(order[5].split('/')[3].split()[0])
-                    marginality += float(order[5].split('/')[2])
+                    cost_price += float(order[5].split('/')[1].split()[0]) * count_key
+                    net_profit += float(order[5].split('/')[3].split()[0]) * count_key
+                    marginality += float(order[5].split('/')[2]) * count_key
                 else:
                     product = order[7].strip()
                     # product = ' '.join()
@@ -281,9 +289,9 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                              f'{dict_sales[product][order[8]][0]}/'
                                              f'{dict_sales[product][order[8]][2]}/'
                                              f'{dict_sales[product][order[8]][3]}')
-                    cost_price += float(dict_sales[product][order[8]][0].split()[0])
-                    net_profit += float(dict_sales[product][order[8]][3].split()[0])
-                    marginality += float(dict_sales[product][order[8]][2])
+                    cost_price += float(dict_sales[product][order[8]][0].split()[0]) * count_key
+                    net_profit += float(dict_sales[product][order[8]][3].split()[0]) * count_key
+                    marginality += float(dict_sales[product][order[8]][2]) * count_key
                 # проверяем длину сообщения
                 if num_mes > 39:
                     # обнуляем длину сообщения
@@ -295,14 +303,19 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 list_orders_filter.append(order)
     # добавляем строки с заказами для последнего сообщения
     list_text.append(text)
+    # если список выполненных заказов в выбранном периоде пустой
     if len(list_finance_data) == 0:
         await callback.message.answer(text=f'<b>Отчет о продажах менеджера за '
                                            f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
                                            f'У менеджера нет выполненных заказов',
                                       parse_mode='html')
+    # иначе выводим запрошенный отчет
     else:
+        # получаем вид отчета ДЕТАЛЬНЫЙ или ИТОГОВЫЙ
         scale_detail = user_dict[callback.message.chat.id]['scale_detail']
+        # если детальный
         if scale_detail == 'details':
+            # если период за который нужно получить отчет СЕГОДНЯ
             if int(user_dict[callback.message.chat.id]['salesperiod']):
                 # если список с заказами не пустой
                 if list_text:
@@ -320,25 +333,19 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                        f':</b>\n'
                                                        f'{text}\n\n',
                                                   parse_mode='html')
-                if chek_admin(telegram_id=callback.message.chat.id):
-                    list_sales_to_exel(list_sales=list_orders_filter,
-                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                                       count=count,
-                                       cost_price=cost_price,
-                                       marginality=round(marginality / len(list_finance_data), 2),
-                                       net_profit=net_profit,
-                                       dict_order_product=dict_order_product,
-                                       admin=chek_admin(telegram_id=callback.message.chat.id))
-                else:
-                    list_sales_to_exel(list_sales=list_orders_filter,
-                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                                       count=count,
-                                       cost_price=0,
-                                       marginality=0,
-                                       net_profit=0,
-                                       dict_order_product=dict_order_product,
-                                       admin=chek_admin(telegram_id=callback.message.chat.id))
+                # if chek_admin(telegram_id=callback.message.chat.id):
+                # создаем ексель таблицу
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality / count_key_period, 2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product,
+                                   admin=chek_admin(telegram_id=callback.message.chat.id))
+            # если выбран произвольный период через календарь
             else:
+                # определяем количество дней за который требуется получить отчет
                 count_days = (date_finish - date_start).days + 1
                 # если список с заказами не пустой
                 if list_text:
@@ -358,28 +365,20 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                                                        f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
                                                        f'{text}\n\n',
                                                   parse_mode='html')
-                if chek_admin(telegram_id=callback.message.chat.id):
-                    list_sales_to_exel(list_sales=list_orders_filter,
-                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
-                                       count=count,
-                                       cost_price=cost_price,
-                                       marginality=round(marginality / len(list_finance_data), 2),
-                                       net_profit=net_profit,
-                                       dict_order_product=dict_order_product,
-                                       admin=chek_admin(telegram_id=callback.message.chat.id))
-                else:
-                    list_sales_to_exel(list_sales=list_orders_filter,
-                                       date_report=f'{list_date_start[1]}/{list_date_start[0]}/'
-                                                   f'{list_date_start[2]} по {list_date_finish[1]}/{list_date_finish[0]}/'
-                                                   f'{list_date_finish[2]}',
-                                       count=count,
-                                       cost_price=0,#'cost_price',
-                                       marginality=0,#round(marginality / len(list_finance_data), 2),
-                                       net_profit=0,#net_profit,
-                                       dict_order_product=dict_order_product,
-                                       admin=chek_admin(telegram_id=callback.message.chat.id))
+                # if chek_admin(telegram_id=callback.message.chat.id):
+                # формируем ексель файл
+                list_sales_to_exel(list_sales=list_orders_filter,
+                                   date_report=f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}',
+                                   count=count,
+                                   cost_price=cost_price,
+                                   marginality=round(marginality / count_key_period, 2),
+                                   net_profit=net_profit,
+                                   dict_order_product=dict_order_product,
+                                   admin=chek_admin(telegram_id=callback.message.chat.id))
 
+        # если вид отчета ИТОГОВЫЙ или ДЕТАЛЬНЫЙ
         if scale_detail == 'total' or scale_detail == 'details':
+            # если выбран период за который требуется получить отчет СЕГОДНЯ
             if int(user_dict[callback.message.chat.id]['salesperiod']):
                 # инициализируем переменную для сообщения для итоговых данных
                 total_text = ''
@@ -404,7 +403,8 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
                 total_text = ''
                 # количество проданных продуктов
                 total_order = 0
-                # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+                # проходим по сформированному словарю и получаем
+                # ключ: продукт и значение: количество проданных продуктов
                 for key_product, value_product in dict_order_product.items():
                     total_text += f'<b>{key_product}:</b>\n'
                     for key_give, value_give in value_product.items():
@@ -795,6 +795,8 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                     logging.info(f'manager:{manager}')
                     logging.info(f'dict_order_product[manager]: {dict_order_product[manager]}')
                     logging.info(f'value_product:{value_product}')
+                    if key_product == 'count':
+                        continue
                     for key_give, value_give in value_product.items():
                         total_text += f'<i>{key_give}:</i> {value_give}\n'
                         count += 1
