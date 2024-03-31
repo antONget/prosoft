@@ -794,17 +794,19 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                                         f'Количество продаж: {total_order} шт.',
                                    parse_mode='html')
     list_user = get_list_users()
-    total_text = ''
+
     # количество проданных продуктов
-    total_order = 0
+
     for manager in dict_order_product.keys():
+        total_order = 0
+        total_text = ''
         for user in list_user:
             if user[1] == manager:
                 for key_product, value_product in dict_order_product[manager].items():
                     total_text += f'<b>{key_product}:</b>\n'
-                    logging.info(f'manager:{manager}')
-                    logging.info(f'dict_order_product[manager]: {dict_order_product[manager]}')
-                    logging.info(f'value_product:{value_product}')
+                    # logging.info(f'manager:{manager}')
+                    # logging.info(f'dict_order_product[manager]: {dict_order_product[manager]}')
+                    # logging.info(f'value_product:{value_product}')
                     if key_product == 'count':
                         continue
                     for key_give, value_give in value_product.items():
