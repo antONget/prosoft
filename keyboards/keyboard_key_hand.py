@@ -51,8 +51,9 @@ def keyboard_select_windows_handkeys() -> None:
     button_5 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2021', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2021')
     button_6 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2019', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2019')
     button_7 = InlineKeyboardButton(text="USB флешка Windows 10/11", callback_data='handgetkey#USB флешка Windows 10/11')
+    button_8 = InlineKeyboardButton(text="Физический продукт", callback_data='handgetkey#Физический продукт')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6], [button_7]],)
+                                                     [button_6], [button_7], [button_8]],)
     return keyboard
 
 

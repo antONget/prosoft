@@ -630,21 +630,44 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
                                      reply_markup=keyboard)
 
 
+async def process_input_fisic(message: Message, state: FSMContext, username: str):
+    logging.info(f'process_input_fisic: {message.chat.id}')
+    user_dict[message.chat.id] = await state.get_data()
+    token_order = str(token_urlsafe(8))
+    current_date = datetime.now()
+    current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
+    append_order(id_order=token_order,
+                 date=current_date_string.split()[0],
+                 time=current_date_string.split()[1],
+                 username=username,
+                 key='физический продукт',
+                 cost=user_dict[message.chat.id]['cost_hand'],
+                 category=user_dict[message.chat.id]['category_hand'],
+                 product=user_dict[message.chat.id]['product_hand'],
+                 type_give='hand',
+                 id_product='-')
+    await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    await state.set_state(default_state)
+
+
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавить ключ
 @router.callback_query(F.data.startswith('handgetkey'))
 async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
     # category = callback.data.split('#')[1]
     product = callback.data.split('#')[1]
-    # print(product)
+    # print(product, callback.message)
     cost_hand_list = get_values_hand_product(product)
     # print(cost_hand_list)
     cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     await state.update_data(cost_hand=cost_hand)
     await state.update_data(product_hand=product)
-    await callback.message.answer(text=f'Пришлите ключ для добавления',
-                                  reply_markup=keyboard_cancel_hand_key())
-    await state.set_state(Keys.get_key_hand)
+    if product == 'Физический продукт':
+        await process_input_fisic(message=callback.message, state=state, username=callback.message.chat.username)
+    else:
+        await callback.message.answer(text=f'Пришлите ключ для добавления',
+                                      reply_markup=keyboard_cancel_hand_key())
+        await state.set_state(Keys.get_key_hand)
 
 
 @router.message(F.text, StateFilter(Keys.get_key_hand))
