@@ -32,8 +32,10 @@ def keyboard_select_office_handkeys() -> None:
     button_6 = InlineKeyboardButton(text='С привязкой Office 2021 для (MacOS)', callback_data='handgetkey#Office 2021 для (MacOS)')
     button_7 = InlineKeyboardButton(text='С привязкой Office 2019 для (MacOS)', callback_data='handgetkey#Office 2019 для (MacOS)')
     button_8 = InlineKeyboardButton(text='С привязкой Office 2016 для (MacOS)', callback_data='handgetkey#Office 2016 для (MacOS)')
+    button_9 = InlineKeyboardButton(text='Office 2019 POS (карта)',
+                                    callback_data='handgetkey#Office 2019 POS (карта)')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6], [button_7], [button_8]],)
+                                                     [button_6], [button_7], [button_8], [button_9]],)
     return keyboard
 
 
@@ -51,9 +53,13 @@ def keyboard_select_windows_handkeys() -> None:
     button_5 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2021', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2021')
     button_6 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2019', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2019')
     button_7 = InlineKeyboardButton(text="USB флешка Windows 10/11", callback_data='handgetkey#USB флешка Windows 10/11')
-    button_8 = InlineKeyboardButton(text="Физический продукт", callback_data='handgetkey#Физический продукт')
+    button_8 = InlineKeyboardButton(text="Windows 10 Pro OEM - Наклейка", callback_data='handgetkey#Windows 10 Pro OEM - Наклейка')
+    button_9 = InlineKeyboardButton(text="Windows 11 Pro OEM - Наклейка",
+                                    callback_data='handgetkey#Windows 11 Pro OEM - Наклейка')
+    button_10 = InlineKeyboardButton(text='Microsoft Windows 10 PRO (BOX)',
+                                    callback_data='handgetkey#Microsoft Windows 10 PRO (BOX)')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6], [button_7], [button_8]],)
+                                                     [button_6], [button_7], [button_8], [button_9], [button_10]],)
     return keyboard
 
 
@@ -67,6 +73,7 @@ def keyboard_select_server_handkeys() -> None:
     button_2 = InlineKeyboardButton(text='Windows Server 2019 Datacenter / Standard', callback_data='handgetkey#Windows Server 2019')
     button_3 = InlineKeyboardButton(text='Windows Server 2016 Datacenter / Standard', callback_data='handgetkey#Windows Server 2016')
     button_4 = InlineKeyboardButton(text='Windows Server 2012 Datacenter / Standard', callback_data='handgetkey#Windows Server 2012')
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4]],)
     return keyboard
 

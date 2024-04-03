@@ -658,11 +658,12 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
     product = callback.data.split('#')[1]
     # print(product, callback.message)
     cost_hand_list = get_values_hand_product(product)
-    # print(cost_hand_list)
+    print(cost_hand_list)
     cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     await state.update_data(cost_hand=cost_hand)
     await state.update_data(product_hand=product)
-    if product == 'Физический продукт':
+    if product in ['USB флешка Windows 10/11', 'Windows 10 Pro OEM - Наклейка', 'Windows 11 Pro OEM - Наклейка',
+                   'Microsoft Windows 10 PRO (BOX)', 'Office 2019 POS (карта)']:
         await process_input_fisic(message=callback.message, state=state, username=callback.message.chat.username)
     else:
         await callback.message.answer(text=f'Пришлите ключ для добавления',
