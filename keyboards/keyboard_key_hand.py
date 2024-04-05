@@ -14,7 +14,9 @@ def keyboard_select_category_handkeys() -> None:
     button_3 = InlineKeyboardButton(text='Ключ Server', callback_data='handgetproduct_server')
     button_4 = InlineKeyboardButton(text='Ключ Visio', callback_data='handgetproduct_visio')
     button_5 = InlineKeyboardButton(text='Ключ Project', callback_data='handgetproduct_project')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5]],)
+    button_6 = InlineKeyboardButton(text='Физический продукт', callback_data='handgetproduct_fisic')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
+                                                     [button_6],])
     return keyboard
 
 
@@ -32,10 +34,9 @@ def keyboard_select_office_handkeys() -> None:
     button_6 = InlineKeyboardButton(text='С привязкой Office 2021 для (MacOS)', callback_data='handgetkey#Office 2021 для (MacOS)')
     button_7 = InlineKeyboardButton(text='С привязкой Office 2019 для (MacOS)', callback_data='handgetkey#Office 2019 для (MacOS)')
     button_8 = InlineKeyboardButton(text='С привязкой Office 2016 для (MacOS)', callback_data='handgetkey#Office 2016 для (MacOS)')
-    button_9 = InlineKeyboardButton(text='Office 2019 POS (карта)',
-                                    callback_data='handgetkey#Office 2019 POS (карта)')
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6], [button_7], [button_8], [button_9]],)
+                                                     [button_6], [button_7], [button_8]],)
     return keyboard
 
 
@@ -52,14 +53,9 @@ def keyboard_select_windows_handkeys() -> None:
     button_4 = InlineKeyboardButton(text='Windows 10/11 Корпоративная 2016', callback_data='handgetkey#Windows 10/11 Корпоративная 2016')
     button_5 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2021', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2021')
     button_6 = InlineKeyboardButton(text='Windows 10/11 Корпоративная LTSC 2019', callback_data='handgetkey#Windows 10/11 Корпоративная LTSC 2019')
-    button_7 = InlineKeyboardButton(text="USB флешка Windows 10/11", callback_data='handgetkey#USB флешка Windows 10/11')
-    button_8 = InlineKeyboardButton(text="Windows 10 Pro OEM - Наклейка", callback_data='handgetkey#Windows 10 Pro OEM - Наклейка')
-    button_9 = InlineKeyboardButton(text="Windows 11 Pro OEM - Наклейка",
-                                    callback_data='handgetkey#Windows 11 Pro OEM - Наклейка')
-    button_10 = InlineKeyboardButton(text='Microsoft Windows 10 PRO (BOX)',
-                                    callback_data='handgetkey#Microsoft Windows 10 PRO (BOX)')
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6], [button_7], [button_8], [button_9], [button_10]],)
+                                                     [button_6],],)
     return keyboard
 
 
@@ -99,6 +95,25 @@ def keyboard_select_project_handkeys() -> None:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
     return keyboard
 
+
+def keyboard_select_fisic_handkeys() -> None:
+    """
+    КЛЮЧ - [Ручной ввод] - Категории - Физический продукт
+    :return:
+    """
+    logging.info("keyboard_select_fisic_handkeys")
+    button_1 = InlineKeyboardButton(text="USB флешка Windows 10/11",
+                                    callback_data='handgetkey#USB флешка Windows 10/11')
+    button_2 = InlineKeyboardButton(text="Windows 10 Pro OEM - Наклейка",
+                                    callback_data='handgetkey#Windows 10 Pro OEM - Наклейка')
+    button_3 = InlineKeyboardButton(text="Windows 11 Pro OEM - Наклейка",
+                                    callback_data='handgetkey#Windows 11 Pro OEM - Наклейка')
+    button_4 = InlineKeyboardButton(text='Microsoft Windows 10 PRO (BOX)',
+                                     callback_data='handgetkey#Microsoft Windows 10 PRO (BOX)')
+    button_5 = InlineKeyboardButton(text='Office 2019 POS (карта)',
+                                    callback_data='handgetkey#Office 2019 POS (карта)')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5]],)
+    return keyboard
 
 def keyboard_cancel_hand_key() -> None:
     """

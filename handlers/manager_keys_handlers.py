@@ -13,7 +13,7 @@ from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
-    keyboard_select_project_handkeys, keyboard_cancel_hand_key
+    keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys
 from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
@@ -26,6 +26,7 @@ user_dict = {}
 class Keys(StatesGroup):
     get_id_order = State()
     get_key_hand = State()
+    get_count_hand = State()
 
 
 def get_telegram_user(user_id, bot_token):
@@ -625,22 +626,35 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
         keyboard = keyboard_select_visio_handkeys()
     elif category == 'project':
         keyboard = keyboard_select_project_handkeys()
+    elif category == 'fisic':
+        keyboard = keyboard_select_fisic_handkeys()
     await state.update_data(category_hand=category)
     await callback.message.edit_text(text='Выберите продукт:',
                                      reply_markup=keyboard)
 
 
-async def process_input_fisic(message: Message, state: FSMContext, username: str):
+# КЛЮЧ - [Ручной ввод] - Физический продукт - Продукт - Указать количество
+async def process_input_fisic(message: Message, state: FSMContext):
     logging.info(f'process_input_fisic: {message.chat.id}')
+    user_dict[message.chat.id] = await state.get_data()
+    product_hand = user_dict[message.chat.id]['product_hand']
+    await message.answer(text=f'Укажите количество выдаваемого продукта {product_hand}')
+    await state.set_state(Keys.get_count_hand)
+
+# КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавление физического продукта
+@router.message(StateFilter(Keys.get_count_hand), lambda x: x.text.isdigit() and 1 <= int(x.text))
+async def process_hand_set_product(message: Message, state: FSMContext) -> None:
+    logging.info(f'process_hand_set_product: {message.chat.id}')
     user_dict[message.chat.id] = await state.get_data()
     token_order = str(token_urlsafe(8))
     current_date = datetime.now()
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
+    count_key = ','.join(['физический продукт'] * int(message.text))
     append_order(id_order=token_order,
                  date=current_date_string.split()[0],
                  time=current_date_string.split()[1],
-                 username=username,
-                 key='физический продукт',
+                 username=message.chat.username,
+                 key=count_key,
                  cost=user_dict[message.chat.id]['cost_hand'],
                  category=user_dict[message.chat.id]['category_hand'],
                  product=user_dict[message.chat.id]['product_hand'],
@@ -648,6 +662,7 @@ async def process_input_fisic(message: Message, state: FSMContext, username: str
                  id_product='-')
     await message.answer(text=f'Ключ добавлен в таблицу заказов')
     await state.set_state(default_state)
+
 
 
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавить ключ
@@ -664,7 +679,7 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
     await state.update_data(product_hand=product)
     if product in ['USB флешка Windows 10/11', 'Windows 10 Pro OEM - Наклейка', 'Windows 11 Pro OEM - Наклейка',
                    'Microsoft Windows 10 PRO (BOX)', 'Office 2019 POS (карта)']:
-        await process_input_fisic(message=callback.message, state=state, username=callback.message.chat.username)
+        await process_input_fisic(message=callback.message, state=state)
     else:
         await callback.message.answer(text=f'Пришлите ключ для добавления',
                                       reply_markup=keyboard_cancel_hand_key())
