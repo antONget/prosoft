@@ -4,10 +4,10 @@ import logging
 from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
 from handlers import admin_main_handlers, admin_manager_handlers, admin_rest_keys, manager_statistic_handlers, \
-    admin_edit_admin_list
+    admin_edit_admin_list, manager_report_change_key, manager_leave_handler, manager_work_handler
 from handlers import user_auth_handler, manager_keys_handlers, manager_sales
 from handlers import other_handlers
-from handlers.admin_rest_keys import process_sheduler
+from handlers.admin_rest_keys import process_scheduler
 from handlers.manager_sales import process_sendler_stat_scheduler
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from middlewares.outer import Middleware_message, Middleware_callback
@@ -22,8 +22,8 @@ async def main():
     # Конфигурируем логирование
     logging.basicConfig(
         level=logging.INFO,
-        filename="py_log.log",
-        filemode='w',
+        # filename="py_log.log",
+        # filemode='w',
         format='%(filename)s:%(lineno)d #%(levelname)-8s '
                '[%(asctime)s] - %(name)s - %(message)s')
 
@@ -37,7 +37,7 @@ async def main():
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher()
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
-    scheduler.add_job(process_sheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
+    scheduler.add_job(process_scheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
     scheduler.add_job(process_sendler_stat_scheduler, 'cron', hour=0, minute=0, second=0, args=(bot,))
     scheduler.start()
     # Регистрируем router в диспетчере
@@ -48,6 +48,9 @@ async def main():
     dp.include_router(manager_statistic_handlers.router)
     dp.include_router(manager_keys_handlers.router)
     dp.include_router(manager_sales.router)
+    dp.include_router(manager_report_change_key.router)
+    dp.include_router(manager_work_handler.router)
+    dp.include_router(manager_leave_handler.router)
     dp.include_router(user_auth_handler.router)
     dp.include_router(other_handlers.router)
 

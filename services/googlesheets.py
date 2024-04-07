@@ -1,6 +1,6 @@
 import gspread
 import logging
-
+# from gspread_formatting import format_cell_range
 gp = gspread.service_account(filename='services/ostatli-telegram-bot.json')
 # gp = gspread.service_account(filename='services/test.json')
 
@@ -127,20 +127,29 @@ def append_order(id_order, date, time, username, key, cost, category, product, t
     order_sheet.append_row([id_order, date, time, username, key, cost, category, product, type_give, id_product])
 
 
-def update_row_key_product(category: str, id_product_in_category: int, id_key: int) -> None:
+def update_row_key_product(category: str, id_product_in_category: int, id_key: int, change: bool = False) -> None:
+    """
+    Функция обновляет значение активации ключа
+    :param category:
+    :param id_product_in_category:
+    :param id_key:
+    :return:
+    """
     logging.info(f'update_row_key_product')
     sheet = dict_category[category]
     values_list = sheet.row_values(id_key+1)[id_product_in_category*7:id_product_in_category*7+7]
-    # print(values_list)
+    activate = '❌'
+    if change:
+        activate = '⚠️'
     if id_product_in_category >= 0:
         for i, value in enumerate(values_list):
             if value == '✅':
                 col = i + 7 * id_product_in_category
                 # print(id_key+1, col)
-                sheet.update_cell(id_key+1, col+1, '❌')
+                sheet.update_cell(id_key+1, col+1, activate)
                 break
     else:
-        sheet.update_cell(id_key+1, 2, '❌')
+        sheet.update_cell(id_key+1, 2, activate)
 
 
 def update_row_key_product_cancel(category: str, key: str) -> None:
@@ -174,6 +183,12 @@ def update_row_order_listkey(id_order: str, listkey: str) -> None:
     order_sheet.update_cell(cell.row, 5, listkey)
 
 def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
+    """
+    Функция заносит ключ в таблицу заказов
+    :param new_key:
+    :param id_order:
+    :return:
+    """
     logging.info(f'update_row_key_product_new_key')
     values_list = order_sheet.get_all_values()
     for row, order in enumerate(values_list):
@@ -181,9 +196,11 @@ def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
             col = 11
             if not order_sheet.cell(row+1, 11).value:
                 order_sheet.update_cell(row+1, col, new_key)
+                break
             else:
                 col += 1
                 order_sheet.update_cell(row + 1, col, new_key)
+                break
 
 
 # поиск строки и столбца положения значения
@@ -196,8 +213,9 @@ def get_values_hand_product(product) -> str:
     logging.info(f'get_values_hand_product')
     values_list = cost_sheet.get_all_values()
     cell = cost_sheet.find('Ключ по запросу')
+    print(product)
     for row, notes in enumerate(values_list[cell.row:]):
-        # print("product, notes[2]", product, notes[2])
+        print("product, notes[2]", product, notes[2])
         if product in notes[2]:
             # print(cell.row, cell.col)
             # print(product, notes[3:7])

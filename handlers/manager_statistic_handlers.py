@@ -1,27 +1,30 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup, default_state
-from aiogram.filters import StateFilter
-import logging
-from secrets import token_urlsafe
-import asyncio
-from module.data_base import add_token, get_list_users, get_user, delete_user
-from datetime import datetime
-from datetime import date
+from aiogram.fsm.state import State, StatesGroup
 
+
+from module.data_base import get_list_users
 from keyboards.keyboards_statistic import keyboard_select_period, keyboard_select_scale, keyboards_list_product
 from filter.user_filter import check_user
-from filter.admin_filter import chek_admin
+from filter.admin_filter import check_admin
 from services.googlesheets import get_list_orders
 
+from datetime import datetime
+from datetime import date
+import logging
 
 router = Router()
+
+
 class Stat(StatesGroup):
     period = State()
+
+
 user_dict = {}
 
-# Статитстика - период статистики
+
+# Статистика - период статистики
 @router.message(F.text == 'Статистика', lambda message: check_user(message.chat.id))
 async def process_get_statistic_period(message: Message) -> None:
     logging.info(f'process_get_statistic_period: {message.chat.id}')
@@ -34,7 +37,7 @@ async def process_get_statistic_period(message: Message) -> None:
 async def process_get_scale(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_scale: {callback.message.chat.id}')
     await state.update_data(period=callback.data.split('_')[1])
-    if chek_admin(callback.message.chat.id):
+    if check_admin(callback.message.chat.id):
         await callback.message.answer(text='Получить статистику',
                                       reply_markup=keyboard_select_scale())
     elif check_user(callback.message.chat.id):
@@ -45,7 +48,7 @@ async def process_get_scale(callback: CallbackQuery, state: FSMContext) -> None:
 
 # Статистика - менеджер
 @router.callback_query(F.data == 'manager')
-async def process_get_stat_manager(callback: CallbackQuery, state: FSMContext) -> None:
+async def process_get_stat_manager(callback: CallbackQuery) -> None:
     logging.info(f'process_get_stat_manager: {callback.message.chat.id}')
     list_username = get_list_users()
     await callback.message.answer(text='Для кого требуется получить статистику',

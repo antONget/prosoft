@@ -3,26 +3,31 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup, default_state
 from aiogram.filters import StateFilter
-import logging
-from secrets import token_urlsafe
-import requests
-from module.data_base import add_token, get_list_users, get_user, delete_user
-from datetime import datetime
 
-from keyboards.keyboards_keys import keyboard_select_type_keys, keyboard_select_category_keys, keyboards_list_product, \
+from keyboards.keyboards_keys import keyboard_select_action_keys_manager, keyboard_select_action_keys_admin, \
+    keyboard_select_category_keys, keyboards_list_product, \
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
     keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys
-from filter.user_filter import check_user
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
     update_row_key_product_cancel, delete_row_order, update_row_order_listkey, get_values_hand_product
 from config_data.config import Config, load_config
+from filter.user_filter import check_user
+from filter.admin_filter import check_admin
+from module.data_base import get_list_users
+
+from datetime import datetime
+from secrets import token_urlsafe
+import requests
+import logging
 
 config: Config = load_config()
 router = Router()
 user_dict = {}
+
+
 class Keys(StatesGroup):
     get_id_order = State()
     get_key_hand = State()
@@ -33,12 +38,11 @@ def get_telegram_user(user_id, bot_token):
     url = f'https://api.telegram.org/bot{bot_token}/getChat'
     data = {'chat_id': user_id}
     response = requests.post(url, data=data)
-    # print(response.json())
     return response.json()
 
 
 # КЛЮЧ
-@router.message(F.text == 'Получить ключ')
+@router.message(F.text == 'Ключ')
 async def process_get_keys(message: Message) -> None:
     logging.info(f'process_get_keys: {message.chat.id}')
     """
@@ -46,11 +50,17 @@ async def process_get_keys(message: Message) -> None:
     :param message:
     :return:
     """
-    await message.answer(text="Что требуется сделать с ключем?",
-                         reply_markup=keyboard_select_type_keys())
+    if check_admin(telegram_id=message.chat.id):
+        await message.answer(text="Что требуется сделать с ключом?",
+                             reply_markup=keyboard_select_action_keys_admin())
+    elif check_user(telegram_id=message.chat.id):
+        await message.answer(text="Что требуется сделать с ключом?",
+                             reply_markup=keyboard_select_action_keys_manager())
 
 
-# КЛЮЧ - [Заменить]
+
+# <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Заменить ключ] - change_key)">
+# main keyboard -> [Ключ] -> [Заменить]
 @router.callback_query(F.data == 'change_key')
 async def process_change_keys(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_get_keys: {callback.message.chat.id}')
@@ -58,11 +68,20 @@ async def process_change_keys(callback: CallbackQuery, state: FSMContext) -> Non
     await state.set_state(Keys.get_id_order)
 
 
-# КЛЮЧ - [Заменить] - номер заказа
+# main keyboard -> [Ключ] - [Заменить] - получение номера заказа, выдача ключа того же товара,
+# добавления ключа в таблицу продаж как замену
 @router.message(F.text, StateFilter(Keys.get_id_order))
 async def process_get_id_order(message: Message, state: FSMContext) -> None:
+    """
+    Функция реализует замену ключа по ранее выполненному заказу
+    :param message:
+    :param state:
+    :return:
+    """
     logging.info(f'process_get_id_order: {message.chat.id}')
+    # получаем информацию о заказе по его токен
     info_order = get_info_order(message.text)
+    # если такой заказ найден выводим информацию о нем
     if info_order:
         # print(info_order)
         await message.answer(text=f'№ заказa: {info_order[0]}\n'
@@ -72,43 +91,58 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                                   f'Стоимость: {info_order[5].split(".")[0]} ₽\n'
                                   f'Категория {info_order[6]} - продукт {info_order[7]}',
                              parse_mode='html')
+        # переменная для записи нового ключа
         new_key = ''
+        # ищем свободный ключ в категории выполненного заказа
         if info_order[6] == 'Office 365':
+            # получаем список ключей продукта
             list_key = get_key_product_office365(info_order[6])
+            # проходим по всем ключам
             for key in list_key:
-                # print(key)
+                # находим свободный
                 if key[1] == '✅':
+                    # получаем ключ
                     new_key = key[0]
+                    # обновляем значение активации ключа
                     update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                           id_key=key[-1])
+                                           id_key=key[-1], change=True)
+                    # останавливаем цикл, так как ключ получен
                     break
+        # если категория office или windows здесь поиск сложнее так как есть разные способы выдачи
         elif info_order[6] == 'office' or info_order[6] == 'windows':
+            # получаем список ключей продукта по категории и продукту
             list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
+            # получаем способ выдачи из выполненного заказа
             type_give = info_order[8]
+            # формируем пустые списки для записи в них ключей с разными способами выдачи
             list_key_online = []
             list_key_phone = []
             list_key_linking = []
+            # создаем словарь, в который помещены эти списки
             dict_key_office = {
                 "list_key_online": list_key_online,
                 "list_key_phone": list_key_phone,
                 "list_key_linking": list_key_linking
             }
+            # наполняем словарь
             key = "list_key_online"
             for i, item in enumerate(list_key[1:]):
+                # в таблицу первыми перечислены ключи 'online', поэтому этот ключ первый, далее когда встречаем
+                # 'По телефону:' переключаем ключ
                 if item[0] == 'По телефону:':
                     key = "list_key_phone"
+                # такая же история и с 'С привязкой:'
                 if item[0] == 'С привязкой:':
                     key = "list_key_linking"
-
                 dict_key_office[key].append(item)
-
+            # если способ выдачи ключа в заказе
             if type_give == 'online':
                 # print(dict_key_office["list_key_phone"])
                 for key in dict_key_office["list_key_online"]:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1])
+                                               id_key=key[-1], change=True)
                         break
             if type_give == 'phone':
                 # print(dict_key_office["list_key_online"])
@@ -116,7 +150,7 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1])
+                                               id_key=key[-1], change=True)
                         break
             if type_give == 'linking':
                 # print(dict_key_office["list_key_online"])
@@ -124,7 +158,7 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1])
+                                               id_key=key[-1], change=True)
                         break
 
         elif info_order[6] == 'visio' or info_order[6] == 'project':
@@ -133,34 +167,27 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                 if '✅' in key and key[1] != '':
                     new_key = key[1]
                     update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                           id_key=key[-1])
+                                           id_key=key[-1], change=True)
                     break
 
         await message.answer(text=f'Новый ключ: <code>{new_key}</code>', parse_mode='html')
+        # заносим ключ в таблицу заказов
         update_row_key_product_new_key(new_key=new_key, id_order=message.text)
-        # if info_order[6] == 'Office 365':
-        #     list_key_product = get_key_product_office365(category=info_order[6])
-        # else:
-        #     list_key_product = get_key_product(category=info_order[6], product=int(info_order[9]))
-        # print(list_key_product)
-        # for key in list_key_product:
-        #     if '✅' in key and key[1] != '':
-        #         print(key[1])
-        #         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]), id_key=key[-1])
-        #         break
+
         await state.set_state(default_state)
     else:
         await message.answer(text="Заказ не найден, повторите ввод")
+# </editor-fold>
 
 
-
+# <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Выдать] - get_key)">
 # КЛЮЧ - [Выдать] - категории продуктов
 @router.callback_query(F.data == 'get_key')
 async def process_select_category(callback: CallbackQuery) -> None:
     logging.info(f'process_select_category: {callback.message.chat.id}')
     try:
         await callback.message.edit_text(text='Выберите категорию продукта для получения ключа',
-                                     reply_markup=keyboard_select_category_keys())
+                                         reply_markup=keyboard_select_category_keys())
     except:
         await callback.message.edit_text(text='Выберитe категoрию продукта для получения ключа',
                                          reply_markup=keyboard_select_category_keys())
@@ -178,12 +205,12 @@ async def process_select_product(callback: CallbackQuery) -> None:
         list_product = list_product[:3]
     try:
         await callback.message.answer(text='Выберите продукт для получения ключа.',
-                                         reply_markup=keyboards_list_product(list_product=list_product,
-                                                                             category=callback.data.split('_')[1]))
+                                      reply_markup=keyboards_list_product(list_product=list_product,
+                                                                          category=callback.data.split('_')[1]))
     except:
         await callback.message.answer(text='Выберите прoдукт для пoлучения ключа',
-                                         reply_markup=keyboards_list_product(list_product=list_product,
-                                                                             category=callback.data.split('_')[1]))
+                                      reply_markup=keyboards_list_product(list_product=list_product,
+                                                                          category=callback.data.split('_')[1]))
 
 
 # КЛЮЧ - [Выдать] - категории - продукт - способ выдачи (для office и windows)
@@ -217,7 +244,8 @@ async def process_select_keyproduct(callback: CallbackQuery, state: FSMContext, 
         await process_select_key_windows(callback=callback, category=category,
                                          id_product_in_category=id_product_in_category, state=state, bot=bot)
     elif category == 'visio' or category == 'project':
-        await process_select_key_visio_and_project(callback=callback, category=category, id_product_in_category=id_product_in_category)
+        await process_select_key_visio_and_project(callback=callback, category=category,
+                                                   id_product_in_category=id_product_in_category)
     else:
         await process_select_key_office365(callback=callback, category=category)
 
@@ -269,7 +297,6 @@ async def process_select_key_office(callback: CallbackQuery, category: str, id_p
                 break
         else:
             await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
-
 
     elif type_give == 'phoneoffice':
         # print(dict_key_office["list_key_phone"])
@@ -346,8 +373,6 @@ async def process_select_key_windows(callback: CallbackQuery, category: str, id_
                 break
         else:
             await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
-
-
 
     elif type_give == 'phonewindows':
         # print(dict_key_windows["list_key_phone"])
@@ -520,13 +545,11 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
 
             if type_give == 'online':
 
-
                 for key in dict_key_office["list_key_online"]:
                     for pos in key:
                         if pos == '✅' and key[1] != '':
                             count_pos += 1
                 logging.info(f'Осталась ключей {count_pos}')
-
 
                 for key in dict_key_office["list_key_online"]:
                     if '✅' in key and key[1] != '':
@@ -597,14 +620,15 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
         # print(list_get_key)
         update_row_order_listkey(id_order=id_order, listkey=','.join(list_get_key))
 
-
         if new_key == '':
             await callback.message.answer(text="Ключи выбранного продукта закончились")
+# </editor-fold>
 
 
-# КЛЮЧ - [Ручной ввод] - Категория
+# <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Отметить продажу] - hand_key)">
+# КЛЮЧ - [Отметить продажу] - Категория
 @router.callback_query(F.data == 'hand_key')
-async def process_hand_keys(callback: CallbackQuery, state: FSMContext) -> None:
+async def process_hand_keys(callback: CallbackQuery) -> None:
     logging.info(f'process_hand_keys: {callback.message.chat.id}')
     await callback.message.answer(text='Выберите категорию для ручного ввода',
                                   reply_markup=keyboard_select_category_handkeys())
@@ -641,6 +665,7 @@ async def process_input_fisic(message: Message, state: FSMContext):
     await message.answer(text=f'Укажите количество выдаваемого продукта {product_hand}')
     await state.set_state(Keys.get_count_hand)
 
+
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавление физического продукта
 @router.message(StateFilter(Keys.get_count_hand), lambda x: x.text.isdigit() and 1 <= int(x.text))
 async def process_hand_set_product(message: Message, state: FSMContext) -> None:
@@ -662,7 +687,6 @@ async def process_hand_set_product(message: Message, state: FSMContext) -> None:
                  id_product='-')
     await message.answer(text=f'Ключ добавлен в таблицу заказов')
     await state.set_state(default_state)
-
 
 
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавить ключ
@@ -712,3 +736,22 @@ async def process_hand_keys_product_cancel(callback: CallbackQuery, state: FSMCo
     logging.info(f'process_hand_keys_product_cancel: {callback.message.chat.id}')
     await callback.message.answer('Добавление ключа вручную отменено')
     await state.set_state(default_state)
+# </editor-fold>
+
+
+# <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Отменить продажу] - change_key)">
+# main keyboard -> [Ключ] -> [Отменить]
+@router.callback_query(F.data == 'cancel_key')
+async def process_cancel_keys(callback: CallbackQuery) -> None:
+    logging.info(f'process_cancel_keys: {callback.message.chat.id}')
+    await callback.message.answer(text='Функционал "Отмены выданного ключа" в разработке')
+# </editor-fold>
+
+
+# <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Добавить] - add_key)">
+# main keyboard -> [Ключ] -> [Добавить]
+@router.callback_query(F.data == 'add_key')
+async def process_add_keys(callback: CallbackQuery) -> None:
+    logging.info(f'process_add_keys: {callback.message.chat.id}')
+    await callback.message.answer(text='Функционал "Добавления ключей в таблицу" в разработке')
+# </editor-fold>

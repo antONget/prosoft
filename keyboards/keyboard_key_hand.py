@@ -20,7 +20,7 @@ def keyboard_select_category_handkeys() -> None:
     return keyboard
 
 
-def keyboard_select_office_handkeys() -> None:
+def keyboard_select_office_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Office
     :return:
@@ -41,7 +41,7 @@ def keyboard_select_office_handkeys() -> None:
 
 
 
-def keyboard_select_windows_handkeys() -> None:
+def keyboard_select_windows_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Windows
     :return:
@@ -59,7 +59,7 @@ def keyboard_select_windows_handkeys() -> None:
     return keyboard
 
 
-def keyboard_select_server_handkeys() -> None:
+def keyboard_select_server_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Server
     :return:
@@ -74,7 +74,7 @@ def keyboard_select_server_handkeys() -> None:
     return keyboard
 
 
-def keyboard_select_visio_handkeys() -> None:
+def keyboard_select_visio_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Visio
     :return:
@@ -85,7 +85,7 @@ def keyboard_select_visio_handkeys() -> None:
     return keyboard
 
 
-def keyboard_select_project_handkeys() -> None:
+def keyboard_select_project_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Project
     :return:
@@ -96,7 +96,7 @@ def keyboard_select_project_handkeys() -> None:
     return keyboard
 
 
-def keyboard_select_fisic_handkeys() -> None:
+def keyboard_select_fisic_handkeys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Физический продукт
     :return:
@@ -115,7 +115,7 @@ def keyboard_select_fisic_handkeys() -> None:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5]],)
     return keyboard
 
-def keyboard_cancel_hand_key() -> None:
+def keyboard_cancel_hand_key() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Project - отмена добавления ключа
     :return:

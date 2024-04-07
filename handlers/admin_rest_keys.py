@@ -1,13 +1,13 @@
 from aiogram import Router, F, Bot
-from aiogram.types import CallbackQuery, Message
-from aiogram.filters import or_f
+from aiogram.types import Message, CallbackQuery
 import logging
-from filter.admin_filter import chek_admin, chek_admin_1
+from filter.admin_filter import check_admin
 from services.googlesheets import dict_category, get_list_product, get_key_product, get_key_product_office365
 from config_data.config import Config, load_config
 import requests
 router = Router()
 config: Config = load_config()
+
 
 def get_telegram_user(user_id, bot_token):
     url = f'https://api.telegram.org/bot{bot_token}/getChat'
@@ -18,10 +18,9 @@ def get_telegram_user(user_id, bot_token):
 
 
 # ОСТАТОК
-@router.message(F.text == 'Остаток', or_f(lambda message: chek_admin(message.chat.id),
-                lambda message: chek_admin_1(message.chat.id)))
-async def process_get_rest(message: Message) -> None:
-    logging.info(f'process_get_rest: {message.chat.id}')
+@router.callback_query(F.data == 'report_rest_key', lambda message: check_admin(message.message.chat.id))
+async def process_get_rest(callback: CallbackQuery) -> None:
+    logging.info(f'process_get_rest: {callback.message.chat.id}')
     dict_rest = {}
 
     for i, category in enumerate(dict_category):
@@ -91,11 +90,10 @@ async def process_get_rest(message: Message) -> None:
             text += f'<i>{product}</i> - {dict_rest[category][product]}\n'
 
         text += f'------------\n'
-    await message.answer(text=text,
-                         parse_mode='html')
+    await callback.message.answer(text=text, parse_mode='html')
 
 
-async def process_sheduler(bot: Bot) -> None:
+async def process_scheduler(bot: Bot) -> None:
     dict_rest = {}
     for i, category in enumerate(dict_category):
         count_key = 0

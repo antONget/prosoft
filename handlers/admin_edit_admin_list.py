@@ -1,14 +1,15 @@
-import logging
-from config_data.config import Config, load_config
 from aiogram import F, Router
-from aiogram.filters import or_f
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
+from aiogram.fsm.context import FSMContext
+
 from keyboards.keyboards_admin_edit_admin_list import keyboard_edit_list_admins, keyboards_add_admin,\
     keyboard_add_list_admins, keyboards_del_admin, keyboard_del_list_admins
 from module.data_base import get_list_notadmins, get_user, set_admins, get_list_admins, set_notadmins
-from aiogram.fsm.context import FSMContext
+from filter.admin_filter import check_super_admin
+from config_data.config import Config, load_config
+
 import asyncio
-from filter.admin_filter import chek_admin, chek_admin_1
+import logging
 
 config: Config = load_config()
 router = Router()
@@ -16,12 +17,11 @@ user_dict = {}
 
 
 # АДМИНИСТРАТОРЫ
-@router.message(F.text == 'Администраторы', or_f(lambda message: chek_admin(message.chat.id),
-                lambda message: chek_admin_1(message.chat.id)))
-async def process_change_list_admins(message: Message) -> None:
-    logging.info(f'process_change_list_admins: {message.chat.id}')
-    await message.answer(text="Назначить или разжаловать администратора?",
-                         reply_markup=keyboard_edit_list_admins())
+@router.callback_query(F.data == 'personal_admin', lambda message: check_super_admin(message.message.chat.id))
+async def process_change_list_admins(callback: CallbackQuery) -> None:
+    logging.info(f'process_change_list_admins: {callback.message.chat.id}')
+    await callback.message.answer(text="Назначить или разжаловать администратора?",
+                                  reply_markup=keyboard_edit_list_admins())
 
 
 # добавление администратора
@@ -89,7 +89,7 @@ async def process_notadd_admin_list(callback: CallbackQuery) -> None:
 async def process_add_admin_list(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_add_admin_list: {callback.message.chat.id}')
     user_dict[callback.message.chat.id] = await state.get_data()
-    user_info = get_user(user_dict[callback.message.chat.id]["add_admin_telegram_id"])
+    # user_info = get_user(user_dict[callback.message.chat.id]["add_admin_telegram_id"])
     # print('add_admin_list', user_info, user_dict[callback.message.chat.id]["add_admin_telegram_id"])
     set_admins(int(user_dict[callback.message.chat.id]["add_admin_telegram_id"]))
     await callback.message.answer(text=f'Пользователь успешно назначен администратором')
@@ -139,7 +139,7 @@ async def process_backdeladmin(callback: CallbackQuery) -> None:
                                          reply_markup=keyboard)
 
 
-# подтверждение добавления админа в список админов
+# подтверждение добавления админа в список
 @router.callback_query(F.data.startswith('admindel'))
 async def process_deleteuser(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_deleteuser: {callback.message.chat.id}')
@@ -162,7 +162,7 @@ async def process_deleteuser(callback: CallbackQuery) -> None:
 async def process_description(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_description: {callback.message.chat.id}')
     user_dict[callback.message.chat.id] = await state.get_data()
-    user_info = get_user(user_dict[callback.message.chat.id]["del_admin_telegram_id"])
+    # user_info = get_user(user_dict[callback.message.chat.id]["del_admin_telegram_id"])
     # print('process_description', user_info, user_dict[callback.message.chat.id]["del_admin_telegram_id"])
     set_notadmins(int(user_dict[callback.message.chat.id]["del_admin_telegram_id"]))
     await callback.message.answer(text=f'Пользователь успешно разжалован')

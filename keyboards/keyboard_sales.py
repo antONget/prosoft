@@ -3,6 +3,23 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import logging
 
 
+def keyboard_report_admin() -> InlineKeyboardMarkup:
+    logging.info("keyboard_report_admin")
+    button_1 = InlineKeyboardButton(text='Отчет по продажам', callback_data='report_sales_key')
+    button_2 = InlineKeyboardButton(text='Отчет по заменам ключей', callback_data='report_change_key')
+    button_3 = InlineKeyboardButton(text='Отчет по остаткам ключей', callback_data='report_rest_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3]],)
+    return keyboard
+
+
+def keyboard_report_manager() -> InlineKeyboardMarkup:
+    logging.info("keyboard_report_admin")
+    button_1 = InlineKeyboardButton(text='Отчет по продажам', callback_data='scalesales_details')
+    button_2 = InlineKeyboardButton(text='Отчет по заменам ключей', callback_data='scalesales_total')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
+    return keyboard
+
+
 def keyboard_select_scaledetail_sales() -> None:
     logging.info("keyboard_select_period_sales")
     button_1 = InlineKeyboardButton(text='Детальный отчет', callback_data='scalesales_details')

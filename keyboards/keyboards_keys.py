@@ -3,20 +3,36 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import logging
 
 
-def keyboard_select_type_keys() -> None:
+def keyboard_select_action_keys_manager() -> InlineKeyboardMarkup:
     """
-    КЛЮЧ - [Выдать][Заменить]
-    :return:
+    start keyboard -> press [КЛЮЧ]
+    :return: InlineKeyboardMarkup
     """
-    logging.info("keyboard_edit_list_user")
+    logging.info("keyboard_select_action_keys")
     button_1 = InlineKeyboardButton(text='Выдать', callback_data='get_key')
-    button_2 = InlineKeyboardButton(text='Заменить', callback_data='change_key')
+    button_2 = InlineKeyboardButton(text='Заменить ключ', callback_data='change_key')
     button_3 = InlineKeyboardButton(text='Отметить продажу', callback_data='hand_key')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1, button_2], [button_3]],)
+    button_4 = InlineKeyboardButton(text='Отменить продажу', callback_data='cancel_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4]],)
     return keyboard
 
 
-def keyboard_select_category_keys() -> None:
+def keyboard_select_action_keys_admin() -> InlineKeyboardMarkup:
+    """
+    start keyboard -> press [КЛЮЧ]
+    :return: InlineKeyboardMarkup
+    """
+    logging.info("keyboard_select_action_keys")
+    button_1 = InlineKeyboardButton(text='Выдать', callback_data='get_key')
+    button_2 = InlineKeyboardButton(text='Заменить ключ', callback_data='change_key')
+    button_3 = InlineKeyboardButton(text='Отметить продажу', callback_data='hand_key')
+    button_4 = InlineKeyboardButton(text='Отменить продажу', callback_data='cancel_key')
+    button_5 = InlineKeyboardButton(text='Добавить', callback_data='add_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4], [button_5]],)
+    return keyboard
+
+
+def keyboard_select_category_keys() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Выдать] - Категории
     :return:

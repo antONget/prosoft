@@ -7,7 +7,7 @@ import asyncio
 from module.data_base import add_token, get_list_users, get_user, delete_user
 from secrets import token_urlsafe
 from keyboards.keyboards_admin_manager import keyboards_del_users, keyboard_delete_user, keyboard_edit_list_user
-from filter.admin_filter import chek_admin, chek_admin_1
+from filter.admin_filter import check_super_admin, check_admin
 
 
 router = Router()
@@ -15,17 +15,16 @@ user_dict = {}
 
 
 # МЕНЕДЖЕР
-@router.message(F.text == 'Менеджер', or_f(lambda message: chek_admin(message.chat.id),
-                lambda message: chek_admin_1(message.chat.id)))
-async def process_change_list_users(message: Message) -> None:
-    logging.info(f'process_change_list_users: {message.chat.id}')
+@router.callback_query(F.data == 'personal_manager', lambda message: check_admin(message.message.chat.id))
+async def process_change_list_users(callback: CallbackQuery) -> None:
+    logging.info(f'process_change_list_users: {callback.message.chat.id}')
     """
     Функция позволяет редактировать список менеджеров
     :param message:
     :return:
     """
-    await message.answer(text="Добавить или удалить менеджера",
-                         reply_markup=keyboard_edit_list_user())
+    await callback.message.answer(text="Добавить или удалить менеджера",
+                                  reply_markup=keyboard_edit_list_user())
 
 
 # добавить менеджера
@@ -34,9 +33,11 @@ async def process_add_user(callback: CallbackQuery) -> None:
     logging.info(f'process_add_user: {callback.message.chat.id}')
     token_new = str(token_urlsafe(8))
     add_token(token_new)
-    await callback.message.edit_text(text=f'Для добавления менеджера в бот отправьте ему этот TOKEN <code>{token_new}</code>.'
-                                       f' По этому TOKEN может быть добавлен только один менеджер,'
-                                       f' не делитесь и не показывайте его никому, кроме тех лиц для кого он предназначен',
+    await callback.message.edit_text(text=f'Для добавления менеджера в бот отправьте ему этот TOKEN'
+                                          f' <code>{token_new}</code>.'
+                                          f' По этому TOKEN может быть добавлен только один менеджер,'
+                                          f' не делитесь и не показывайте его никому, кроме тех лиц для кого он'
+                                          f' предназначен',
                                      parse_mode='html')
 
 
@@ -47,7 +48,7 @@ async def process_description(callback: CallbackQuery) -> None:
     list_user = get_list_users()
     keyboard = keyboards_del_users(list_user, 0, 2, 6)
     await callback.message.edit_text(text='Выберите менеджера, которого вы хотите удалить',
-                                  reply_markup=keyboard)
+                                     reply_markup=keyboard)
 
 
 # >>>>
@@ -90,7 +91,7 @@ async def process_deleteuser(callback: CallbackQuery, state: FSMContext) -> None
     user_info = get_user(telegram_id)
     await state.update_data(del_telegram_id=telegram_id)
     await callback.message.edit_text(text=f'Удалить менеджера {user_info[0]}',
-                                  reply_markup=keyboard_delete_user())
+                                     reply_markup=keyboard_delete_user())
 
 
 # отмена удаления пользователя
@@ -105,7 +106,7 @@ async def process_notdel_user(callback: CallbackQuery) -> None:
 async def process_descriptiondel_user(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_descriptiondel_user: {callback.message.chat.id}')
     user_dict[callback.message.chat.id] = await state.get_data()
-    user_info = get_user(user_dict[callback.message.chat.id]["del_telegram_id"])
+    # user_info = get_user(user_dict[callback.message.chat.id]["del_telegram_id"])
     # print('process_description', user_info, user_dict[callback.message.chat.id]["del_telegram_id"])
     delete_user(user_dict[callback.message.chat.id]["del_telegram_id"])
     await callback.message.answer(text=f'Менеджер успешно удален')
