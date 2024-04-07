@@ -42,7 +42,7 @@ def get_telegram_user(user_id, bot_token):
 
 
 # КЛЮЧ
-@router.message(F.text == 'Ключ')
+@router.message(F.text == 'Ключи')
 async def process_get_keys(message: Message) -> None:
     logging.info(f'process_get_keys: {message.chat.id}')
     """

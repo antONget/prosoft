@@ -19,7 +19,7 @@ def keyboards_super_admin() -> ReplyKeyboardMarkup:
 
 def keyboards_super_admin_v1() -> ReplyKeyboardMarkup:
     logging.info("keyboards_super_admin_new")
-    button_1 = KeyboardButton(text='Ключ')
+    button_1 = KeyboardButton(text='Ключи')
     button_2 = KeyboardButton(text='Отчет')
     button_3 = KeyboardButton(text='Персонал')
     keyboard = ReplyKeyboardMarkup(
@@ -43,7 +43,7 @@ def keyboards_manager() -> ReplyKeyboardMarkup:
 
 def keyboards_manager_v1() -> ReplyKeyboardMarkup:
     logging.info("keyboards_manager_new")
-    button_1 = KeyboardButton(text='Ключ')
+    button_1 = KeyboardButton(text='Ключи')
     button_2 = KeyboardButton(text='Отчет')
     button_3 = KeyboardButton(text='График')
     keyboard = ReplyKeyboardMarkup(
