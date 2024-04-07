@@ -14,8 +14,8 @@ def keyboard_report_admin() -> InlineKeyboardMarkup:
 
 def keyboard_report_manager() -> InlineKeyboardMarkup:
     logging.info("keyboard_report_admin")
-    button_1 = InlineKeyboardButton(text='Отчет по продажам', callback_data='scalesales_details')
-    button_2 = InlineKeyboardButton(text='Отчет по заменам ключей', callback_data='scalesales_total')
+    button_1 = InlineKeyboardButton(text='Отчет по продажам', callback_data='report_sales_key')
+    button_2 = InlineKeyboardButton(text='Отчет по заменам ключей', callback_data='report_change_key')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
     return keyboard
 

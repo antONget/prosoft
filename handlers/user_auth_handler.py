@@ -2,7 +2,7 @@ from aiogram import Router, F, Bot
 from aiogram.filters import CommandStart, StateFilter
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.state import State, StatesGroup, default_state
 
 
 from module.data_base import create_table_users
@@ -10,7 +10,7 @@ import logging
 from config_data.config import Config, load_config
 from filter.user_filter import check_user
 from module.data_base import check_token
-from keyboards.keyboards_admin import keyboards_manager
+from keyboards.keyboards_admin import keyboards_manager_v1
 
 router = Router()
 # Загружаем конфиг в переменную config
@@ -40,18 +40,18 @@ async def process_start_command_user(message: Message, state: FSMContext) -> Non
         await state.set_state(User.get_token)
     else:
         await message.answer(text='Вы авторизованы в боте',
-                             reply_markup=keyboards_manager())
+                             reply_markup=keyboards_manager_v1())
 
 
 # проверяем TOKEN
 @router.message(F.text, StateFilter(User.get_token))
-async def get_token_user(message: Message, bot: Bot) -> None:
+async def get_token_user(message: Message, bot: Bot, state: FSMContext) -> None:
     logging.info(f'get_token_user: {message.chat.id}')
     if check_token(message):
         await message.answer(text='Вы верифицированы',
-                             reply_markup=keyboards_manager())
+                             reply_markup=keyboards_manager_v1())
         list_admin = config.tg_bot.admin_ids.split(',')
-        # print(list_admin)
+        await state.set_state(default_state)
         for admin_id in list_admin:
             try:
                 await bot.send_message(chat_id=int(admin_id),

@@ -45,7 +45,7 @@ def keyboards_manager_v1() -> ReplyKeyboardMarkup:
     logging.info("keyboards_manager_new")
     button_1 = KeyboardButton(text='Ключ')
     button_2 = KeyboardButton(text='Отчет')
-    button_3 = KeyboardButton(text='Персонал')
+    button_3 = KeyboardButton(text='График')
     keyboard = ReplyKeyboardMarkup(
         keyboard=[[button_1], [button_2], [button_3]],
         resize_keyboard=True

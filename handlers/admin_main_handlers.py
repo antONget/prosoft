@@ -7,6 +7,7 @@ from filter.user_filter import check_user
 from module.data_base import create_table_users, add_super_admin
 from keyboards.keyboards_admin import keyboards_super_admin_v1, keyboards_manager_v1, keyboard_personal_admin, \
     keyboard_personal_manager
+from keyboards.keyboard_sales import keyboard_report_admin, keyboard_report_manager
 from config_data.config import Config, load_config
 
 import requests
@@ -70,6 +71,32 @@ async def process_personal(message: Message) -> None:
     if check_admin(telegram_id=message.chat.id):
         await message.answer(text="Выберите требуемый раздел",
                              reply_markup=keyboard_personal_admin())
-    elif check_user(telegram_id=message.chat.id):
+
+
+@router.message(F.text == 'График')
+async def process_personal(message: Message) -> None:
+    logging.info(f'process_personal: {message.chat.id}')
+    if check_user(telegram_id=message.chat.id):
         await message.answer(text="Выберите требуемый раздел",
                              reply_markup=keyboard_personal_manager())
+
+
+@router.message(F.text == 'Отчет')
+async def process_get_report(message: Message) -> None:
+    """
+    Начало цепочки сообщений для выбора:
+    1. отчета о продажах (выбор периода для которого выдается отчет о продажах)
+    Администратор - может выбрать отчет за менеджера или компанию
+    Менеджер - может посмотреть отчеты только за менеджеров
+    2. отчета о заменах по аналогии с отчетом о продажах
+    3. отчет об остатках ключей (доступен только админу)
+    :param message:
+    :return:
+    """
+    logging.info(f'process_get_report: {message.chat.id}')
+    if check_admin(telegram_id=message.chat.id):
+        await message.answer(text="Отчет по какому разделу требуется?",
+                             reply_markup=keyboard_report_admin())
+    elif check_user(telegram_id=message.chat.id):
+        await message.answer(text="Отчет по какому разделу требуется?",
+                             reply_markup=keyboard_report_manager())
