@@ -1,5 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
+from aiogram.types import FSInputFile
 
 import logging
 
@@ -23,3 +24,6 @@ async def all_message(message: Message) -> None:
         logging.info(f'all_message message.sticker')
         # Получим ID Стикера
         # print(message.sticker.file_id)
+    if message.text == '/get_logfile':
+        file_path = "py_log.log"
+        await message.answer_document(FSInputFile(file_path))
