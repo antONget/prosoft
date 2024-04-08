@@ -10,9 +10,12 @@ from keyboards.keyboards_keys import keyboard_select_action_keys_manager, keyboa
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
     keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys
+from keyboards.keyboard_admin_add_keys import keyboard_select_category_set_keys, keyboards_list_product_set_keys, \
+    keyboards_list_type_office_set_keys, keyboards_list_type_windows_set_keys, keyboards_add_more_keys
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
     update_row_key_product, get_cost_product, get_info_order, update_row_key_product_new_key, \
-    update_row_key_product_cancel, delete_row_order, update_row_order_listkey, get_values_hand_product
+    update_row_key_product_cancel, delete_row_order, update_row_order_listkey, get_values_hand_product, set_key_in_sheet
+
 from config_data.config import Config, load_config
 from filter.user_filter import check_user
 from filter.admin_filter import check_admin
@@ -32,6 +35,8 @@ class Keys(StatesGroup):
     get_id_order = State()
     get_key_hand = State()
     get_count_hand = State()
+    set_key = State()
+    set_activate = State()
 
 
 def get_telegram_user(user_id, bot_token):
@@ -753,5 +758,285 @@ async def process_cancel_keys(callback: CallbackQuery) -> None:
 @router.callback_query(F.data == 'add_key')
 async def process_add_keys(callback: CallbackQuery) -> None:
     logging.info(f'process_add_keys: {callback.message.chat.id}')
-    await callback.message.answer(text='Функционал "Добавления ключей в таблицу" в разработке')
+    # await callback.message.answer(text='Функционал "Добавления ключей в таблицу" в разработке')
+    try:
+        await callback.message.edit_text(text='Выберите категорию продукта для добавления ключа',
+                                         reply_markup=keyboard_select_category_set_keys())
+    except:
+        await callback.message.edit_text(text='Выберитe категoрию продукта для добавления ключа',
+                                         reply_markup=keyboard_select_category_set_keys())
+
+
+# КЛЮЧ - [Добавить] - категории - продукты
+@router.callback_query(F.data.startswith('setproduct'))
+async def process_select_product_set_keys(callback: CallbackQuery) -> None:
+    logging.info(f'process_select_product_set_keys:{callback.data.split("_")[1]} {callback.message.chat.id} ')
+    list_product = get_list_product(callback.data.split('_')[1])
+
+    if callback.data.split('_')[1] == 'windows':
+        list_product = list_product[:2]
+    if callback.data.split('_')[1] == 'office':
+        list_product = list_product[:3]
+    try:
+        await callback.message.answer(text='Выберите продукт для добавления ключа.',
+                                      reply_markup=keyboards_list_product_set_keys(list_product=list_product,
+                                                                                   category=callback.data.split('_')[1]))
+    except:
+        await callback.message.answer(text='Выберите прoдукт для добавления ключа',
+                                      reply_markup=keyboards_list_product_set_keys(list_product=list_product,
+                                                                                   category=callback.data.split('_')[1]))
+
+
+# КЛЮЧ - [Выдать] - категории - продукт - способ выдачи (для office и windows)
+@router.callback_query(F.data.startswith('settypegive_'))
+async def process_select_typegive_set_keys(callback: CallbackQuery) -> None:
+    logging.info(f'process_select_typegive_set_keys: {callback.message.chat.id}')
+    # получаем наименование категории
+    category = callback.data.split('_')[1].split(':')[0]
+    # номер продукта в категории
+    id_product_in_category = int(callback.data.split('_')[1].split(':')[1])
+    if category == 'office':
+        await callback.message.answer(text=f'Для добавления ключа, выберите способ его выдачи:',
+                                      reply_markup=keyboards_list_type_office_set_keys(category=category,
+                                                                                       product=id_product_in_category))
+    elif category == 'windows':
+        await callback.message.answer(text=f'Для добавления ключа, выберите способ его выдачи:',
+                                      reply_markup=keyboards_list_type_windows_set_keys(category=category,
+                                                                                        product=id_product_in_category))
+
+
+# КЛЮЧ - [Выдать] - категории - продукт - key
+@router.callback_query(F.data.startswith('setkeyproduct_'))
+async def process_set_key_product(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_set_key_product: {callback.message.chat.id}')
+    await callback.message.answer(text='Пришлите ключ для добавления')
+
+    category = callback.data.split('_')[1].split(':')[0]
+    if category == 'office' or category == 'windows':
+        type_give = callback.data.split('_')[1].split(':')[2]
+        await state.update_data(type_give_set=type_give)
+    id_product_in_category = int(callback.data.split('_')[1].split(':')[1])
+    await state.update_data(category_set=category)
+    await state.update_data(id_product_in_category_set=id_product_in_category)
+
+    await state.set_state(Keys.set_key)
+
+
+@router.message(F.text, StateFilter(Keys.set_key))
+async def process_set_key_product(message: Message, state: FSMContext) -> None:
+    logging.info(f'process_set_key_product: {message.chat.id}')
+    set_key = message.text
+    await state.update_data(set_key=set_key)
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    if category != 'Office 365':
+        await message.answer(text='Пришлите количество активаций для ключа:')
+        await state.set_state(Keys.set_activate)
+    else:
+        await process_set_key_office365(message=message, state=state)
+
+
+@router.message(F.text, StateFilter(Keys.set_activate))
+async def process_set_key_product(message: Message, state: FSMContext) -> None:
+    logging.info(f'process_set_key_product: {message.chat.id}')
+    await state.set_state(default_state)
+    await state.update_data(set_activate=int(message.text))
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    # id_product_in_category = user_dict[message.chat.id]['id_product_in_category_set']
+
+    if category == 'office':
+        await process_set_key_office(message=message, state=state)
+    elif category == 'windows':
+        await process_set_key_windows(message=message, state=state)
+    elif category == 'visio' or category == 'project':
+        await process_set_key_visio_and_project(message=message, state=state)
+
+
+async def process_set_key_office(message: Message, state: FSMContext):
+    logging.info(f'process_set_key_office: {message.chat.id}')
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    id_product_in_category = user_dict[message.chat.id]['id_product_in_category_set']
+    set_key = user_dict[message.chat.id]['set_key']
+    set_activate = user_dict[message.chat.id]['set_activate']
+    list_key_product = get_key_product(category=category, product=id_product_in_category)
+
+    list_key_online = []
+    list_key_phone = []
+    list_key_linkingMS = []
+    dict_key_office = {
+        "onlineoffice": list_key_online,
+        "phoneoffice": list_key_phone,
+        "linkingMSoffice": list_key_linkingMS
+    }
+
+    key = "onlineoffice"
+    for i, item in enumerate(list_key_product[1:]):
+        if item[0] == 'По телефону:':
+            key = "phoneoffice"
+        if item[0] == 'С привязкой:':
+            key = "linkingMSoffice"
+        dict_key_office[key].append(item)
+
+    type_give = user_dict[message.chat.id]['type_give_set']
+    if type_give == 'onlineoffice':
+        for key_info in dict_key_office[type_give]:
+            if key_info[1] == '' and 'Office' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+    elif type_give == 'phoneoffice':
+        for key_info in dict_key_office[type_give]:
+            if key_info[1] == '' and 'Office' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+    elif type_give == 'linkingMSoffice':
+        for key_info in dict_key_office[type_give]:
+            if key_info[1] == '' and 'Office' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+
+@router.callback_query(F.data == 'add_more_keys')
+async def process_add_more_keys(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_add_more_keys: {callback.message.chat.id}')
+    await callback.message.answer(text='Пришлите ключ для добавления')
+    await state.set_state(Keys.set_key)
+
+
+async def process_set_key_windows(message: Message, state: FSMContext):
+    logging.info(f'process_set_key_windows: {message.chat.id}')
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    id_product_in_category = user_dict[message.chat.id]['id_product_in_category_set']
+    set_key = user_dict[message.chat.id]['set_key']
+    set_activate = user_dict[message.chat.id]['set_activate']
+    list_key_product = get_key_product(category=category, product=id_product_in_category)
+
+    list_key_online = []
+    list_key_phone = []
+    list_key_linking = []
+    dict_key_windows = {
+        "onlinewindows": list_key_online,
+        "phonewindows": list_key_phone,
+        "linkingwindows": list_key_linking
+    }
+    key = "onlinewindows"
+    for i, item in enumerate(list_key_product[1:]):
+        if item[0] == 'По телефону:':
+            key = "phonewindows"
+        if item[0] == 'С привязкой:':
+            key = "linkingwindows"
+
+        dict_key_windows[key].append(item)
+
+    type_give = user_dict[message.chat.id]['type_give_set']
+    if type_give == 'onlinewindows':
+        for key_info in dict_key_windows[type_give]:
+            if key_info[1] == '' and 'Windows' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+    elif type_give == 'phonewindows':
+        for key_info in dict_key_windows[type_give]:
+            if key_info[1] == '' and 'Windows' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+    elif type_give == 'linkingwindows':
+        for key_info in dict_key_windows[type_give]:
+            if key_info[1] == '' and 'Windows' in key_info[0]:
+                set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                                 id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+                await message.answer(text='Ключ добавлен в таблицу',
+                                     reply_markup=keyboards_add_more_keys())
+                break
+        else:
+            await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+
+async def process_set_key_office365(message: Message, state: FSMContext):
+    logging.info(f'process_select_key_office365: {message.chat.id}')
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    id_product_in_category = user_dict[message.chat.id]['id_product_in_category_set']
+    set_key = user_dict[message.chat.id]['set_key']
+    list_key_product = get_key_product_office365(category=category)
+
+    for key_info in list_key_product:
+        if key_info[0] == '':
+            set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                             id_key=int(key_info[-1]), set_key=set_key, activate=1)
+            await message.answer(text='Ключ добавлен в таблицу',
+                                 reply_markup=keyboards_add_more_keys())
+            break
+    else:
+        await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+
+async def process_set_key_visio_and_project(message: Message, state: FSMContext):
+    logging.info(f'process_set_key_visio_and_project: {message.chat.id}')
+    user_dict[message.chat.id] = await state.update_data()
+    category = user_dict[message.chat.id]['category_set']
+    id_product_in_category = user_dict[message.chat.id]['id_product_in_category_set']
+    set_key = user_dict[message.chat.id]['set_key']
+    set_activate = user_dict[message.chat.id]['set_activate']
+    # получаем список ключей в таблице во вкладке категории и в столбце продукта
+    list_key_product = get_key_product(category=category, product=id_product_in_category)[1:]
+    for key_info in list_key_product:
+        if key_info[1] == '' and ('Visio' in key_info[0] or 'Project' in key_info[0]):
+            set_key_in_sheet(category=category, id_product_in_category=id_product_in_category,
+                             id_key=int(key_info[-1]), set_key=set_key, activate=set_activate)
+            await message.answer(text='Ключ добавлен в таблицу',
+                                 reply_markup=keyboards_add_more_keys())
+            break
+    else:
+        await message.answer(text='Добавьте строки для добавления ключей в таблицу')
+
+
+@router.callback_query(F.data.startswith('setpageback_'))
+async def process_select_back(callback: CallbackQuery) -> None:
+    logging.info(f'process_select_back: {callback.message.chat.id}')
+    back = callback.data.split('_')[1]
+    if back == 'category':
+        await process_add_keys(callback)
+    elif back == 'setproductoffice':
+        logging.info(f'process_select_productoffice: {callback.message.chat.id}')
+        list_product = get_list_product('office')
+        await callback.message.edit_text(text='Выберите прoдукт для добавления ключа',
+                                         reply_markup=keyboards_list_product_set_keys(list_product=list_product,
+                                                                                      category='office'))
+    elif back == 'setproductwindows':
+        logging.info(f'process_select_productwindows: {callback.message.chat.id}')
+        list_product = get_list_product('windows')
+        await callback.message.edit_text(text='Выберите прoдукт для добавления ключа',
+                                         reply_markup=keyboards_list_product_set_keys(list_product=list_product,
+                                                                                      category='windows'))
 # </editor-fold>

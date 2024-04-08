@@ -26,6 +26,7 @@ dict_category = {
     "visio": visio_sheet
 }
 
+
 def get_list_product(category):
     logging.info(f'get_list_product')
     sheet = dict_category[category]
@@ -182,6 +183,7 @@ def update_row_order_listkey(id_order: str, listkey: str) -> None:
     cell = order_sheet.find(id_order)
     order_sheet.update_cell(cell.row, 5, listkey)
 
+
 def update_row_key_product_new_key(new_key:str, id_order: str) -> None:
     """
     Функция заносит ключ в таблицу заказов
@@ -223,6 +225,20 @@ def get_values_hand_product(product) -> str:
             return notes[3:7]
         if notes[2] == '':
             break
+
+
+def set_key_in_sheet(category: str, id_product_in_category: int, id_key: int, set_key: str, activate: int) -> None:
+    logging.info(f'set_key_in_sheet')
+    sheet = dict_category[category]
+    if category != 'Office 365':
+        col = 7 * id_product_in_category + 2
+    else:
+        col = 1
+    row = id_key + 1
+    print('col:', col, "row:", row)
+    sheet.update_cell(row=row, col=col, value=set_key)
+    for i in range(1, activate + 1):
+        sheet.update_cell(row=row, col=col + i, value='✅')
 
 
 
