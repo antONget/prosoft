@@ -33,7 +33,7 @@ user_dict = {}
 @router.callback_query(F.data == 'report_change_key')
 async def process_get_report_change_key(callback: CallbackQuery) -> None:
     logging.info(f'process_get_report_change_key: {callback.message.chat.id}')
-    await callback.message.answer(text='Функционал "Отчет о заменах ключей" в разработке')
+    # await callback.message.answer(text='Функционал "Отчет о заменах ключей" в разработке')
     await callback.message.answer(text="Выберите период для получения отчета о продажах",
                                   reply_markup=keyboard_select_period_change_key())
 

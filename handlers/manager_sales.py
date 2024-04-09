@@ -692,6 +692,7 @@ async def process_get_exel(callback: CallbackQuery) -> None:
     logging.info(f'process_get_exel: {callback.message.chat.id}')
     file_path = "sales.xlsx"  # или "folder/filename.ext"
     await callback.message.answer_document(FSInputFile(file_path))
+# </editor-fold>
 
 
 # ПРОДАЖИ - для выбранного менеджера

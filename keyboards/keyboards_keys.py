@@ -94,3 +94,10 @@ def keyboards_cancel_append_key(id_order: str):
     button_2 = InlineKeyboardButton(text='Выдать ещё один ключ', callback_data=f'append_get_key#{id_order}')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]], )
     return keyboard
+
+
+def keyboards_cancel_get_key(id_order: str):
+    logging.info("keyboards_cancel_get_key")
+    button_1 = InlineKeyboardButton(text='Отменить выдачу ключа', callback_data=f'cancel_get_key#{id_order}')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]], )
+    return keyboard

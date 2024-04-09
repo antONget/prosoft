@@ -6,7 +6,7 @@ from aiogram.filters import StateFilter
 
 from keyboards.keyboards_keys import keyboard_select_action_keys_manager, keyboard_select_action_keys_admin, \
     keyboard_select_category_keys, keyboards_list_product, \
-    keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key
+    keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key, keyboards_cancel_get_key
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
     keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys
@@ -21,7 +21,8 @@ from filter.user_filter import check_user
 from filter.admin_filter import check_admin
 from module.data_base import get_list_users
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from datetime import date
 from secrets import token_urlsafe
 import requests
 import logging
@@ -37,6 +38,7 @@ class Keys(StatesGroup):
     get_count_hand = State()
     set_key = State()
     set_activate = State()
+    get_id_order_cancel = State()
 
 
 def get_telegram_user(user_id, bot_token):
@@ -250,9 +252,9 @@ async def process_select_keyproduct(callback: CallbackQuery, state: FSMContext, 
                                          id_product_in_category=id_product_in_category, state=state, bot=bot)
     elif category == 'visio' or category == 'project':
         await process_select_key_visio_and_project(callback=callback, category=category,
-                                                   id_product_in_category=id_product_in_category)
+                                                   id_product_in_category=id_product_in_category, state=state, bot=bot)
     else:
-        await process_select_key_office365(callback=callback, category=category)
+        await process_select_key_office365(callback=callback, category=category, state=state, bot=bot)
 
 
 async def process_select_key_office(callback: CallbackQuery, category: str, id_product_in_category: int,
@@ -312,7 +314,7 @@ async def process_select_key_office(callback: CallbackQuery, category: str, id_p
                 await get_key_product_finish(callback=callback, category=category, product=key[0],
                                              key_product=key[1], id_row_key=key[-1],
                                              id_product_in_category=id_product_in_category, cost=cost,
-                                             type_give='phone')
+                                             type_give='phone', state=state, bot=bot)
                 break
         else:
             await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
@@ -325,7 +327,7 @@ async def process_select_key_office(callback: CallbackQuery, category: str, id_p
                 await get_key_product_finish(callback=callback, category=category, product=key[0],
                                              key_product=key[1], id_row_key=key[-1],
                                              id_product_in_category=id_product_in_category, cost=cost,
-                                             type_give='linking')
+                                             type_give='linking', state=state, bot=bot)
                 break
             else:
                 await callback.message.answer(text='Обратитесь к руководителю для получения ключа')
@@ -388,12 +390,19 @@ async def process_select_key_windows(callback: CallbackQuery, category: str, id_
                 await get_key_product_finish(callback=callback, category=category, product=key[0],
                                              key_product=key[1], id_row_key=key[-1],
                                              id_product_in_category=id_product_in_category, cost=cost,
-                                             type_give='phone')
+                                             type_give='phone', state=state, bot=bot)
                 break
         else:
             await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
     elif type_give == 'linkingwindows':
-        # print(dict_key_windows["list_key_linking"])
+
+        count_pos = 0
+        for key in dict_key_windows["list_key_linking"]:
+            for pos in key:
+                if pos == '✅' and key[1] != '':
+                    count_pos += 1
+        await state.update_data(count_pos=count_pos)
+
         for key in dict_key_windows["list_key_linking"]:
             if '✅' in key and key[1] != '':
                 # print(key[1])
@@ -401,28 +410,36 @@ async def process_select_key_windows(callback: CallbackQuery, category: str, id_
                 await get_key_product_finish(callback=callback, category=category, product=key[0],
                                              key_product=key[1], id_row_key=key[-1],
                                              id_product_in_category=id_product_in_category, cost=cost,
-                                             type_give='linking')
+                                             type_give='linking', state=state, bot=bot)
                 break
         else:
             await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
 
 
-async def process_select_key_office365(callback: CallbackQuery, category: str):
+async def process_select_key_office365(callback: CallbackQuery, category: str, state: FSMContext, bot: Bot):
     logging.info(f'process_select_key_office365: {callback.message.chat.id}')
     list_key_product = get_key_product_office365(category=category)
-    # print(list_key_product)
+    print(list_key_product)
+    count_pos = 0
+    for key in list_key_product:
+        for pos in key:
+            if pos == '✅' and key[0] != '':
+                count_pos += 1
+    logging.info(f'Осталось ключей Office 365: {count_pos}')
+    await state.update_data(count_pos=count_pos)
     for key in list_key_product:
         if '✅' in key and key[0] != '':
             # print(key[0])
             cost = get_cost_product(product='Office 365', typelink='None')
             await get_key_product_finish(callback=callback, category=category, product=category, key_product=key[0],
-                                         id_row_key=key[-1], cost=cost, type_give='online')
+                                         id_row_key=key[-1], cost=cost, type_give='online', state=state, bot=bot)
             break
     else:
         await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
 
 
-async def process_select_key_visio_and_project(callback: CallbackQuery, category: str, id_product_in_category: int):
+async def process_select_key_visio_and_project(callback: CallbackQuery, category: str, id_product_in_category: int,
+                                               state: FSMContext, bot: Bot):
     logging.info(f'process_select_key_visio_and_project: {callback.message.chat.id}')
     # получаем список ключей в таблице во вкладке категории и в столбце продукта
     list_key_product = get_key_product(category=category, product=id_product_in_category)[1:]
@@ -433,15 +450,16 @@ async def process_select_key_visio_and_project(callback: CallbackQuery, category
             cost = get_cost_product(product=key[0], typelink='online')
             await get_key_product_finish(callback=callback, category=category, product=key[0],
                                          key_product=key[1], id_row_key=key[-1],
-                                         id_product_in_category=id_product_in_category, cost=cost, type_give='online')
+                                         id_product_in_category=id_product_in_category, cost=cost, type_give='online',
+                                         state=state, bot=bot)
             break
     else:
         await callback.message.answer(text='Ключи по запрошенному продукту в таблице отсутствуют')
 
 
 async def get_key_product_finish(callback: CallbackQuery, category: str, product: str, key_product: str,
-                                 id_row_key: int, cost: list, type_give: str, state: FSMContext = None,
-                                 id_product_in_category: int = -1, bot: Bot = None) -> None:
+                                 id_row_key: int, cost: list, type_give: str, state: FSMContext, bot: Bot,
+                                 id_product_in_category: int = -1) -> None:
     logging.info(f'get_key_product_finish: {callback.message.chat.id}')
     token_order = str(token_urlsafe(8))
     current_date = datetime.now()
@@ -463,18 +481,26 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
                                   reply_markup=keyboards_cancel_append_key(id_order=token_order),
                                   parse_mode='html')
     update_row_key_product(category=category, id_product_in_category=id_product_in_category, id_key=id_row_key)
-    if category in ['office', 'windows'] and type_give == 'online':
+
+    if (category in ['office', 'windows'] and type_give == 'online') or\
+            (category == 'windows' and type_give == 'linking') or (category == 'Office 365'):
         user_dict[callback.message.chat.id] = await state.get_data()
         count_pos = user_dict[callback.message.chat.id]['count_pos']
+        await state.update_data(count_pos=count_pos - 1)
+        print(count_pos)
         if count_pos == 3:
             list_user = get_list_users()
             for user in list_user:
                 # print(user)
                 result = get_telegram_user(user_id=user[0], bot_token=config.tg_bot.token)
                 if 'result' in result:
-                    await bot.send_message(chat_id=int(user[0]),
-                                           text=f'⚠️ Необходимо пополнить остаток {product} онлайн активация')
-        await state.update_data(count_pos=-1)
+                    if category == 'Office 365':
+                        await bot.send_message(chat_id=int(user[0]),
+                                               text=f'⚠️ Необходимо пополнить остаток {product}')
+                    else:
+                        await bot.send_message(chat_id=int(user[0]),
+                                               text=f'⚠️ Необходимо пополнить остаток {product} {type_give} активация')
+
 
 
 @router.callback_query(F.data.startswith('pageback_'))
@@ -511,14 +537,14 @@ async def process_cancel_get_key(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith('append_get_key'))
-async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
+async def process_append_get_key(callback: CallbackQuery, bot: Bot, state: FSMContext) -> None:
     logging.info(f'process_cancel_get_key: {callback.message.chat.id}')
     id_order = callback.data.split('#')[1]
     info_order = get_info_order(id_order)
     if info_order:
         # print(info_order)
         new_key = ''
-        count_pos = 0
+
         if info_order[6] == 'Office 365':
             list_key = get_key_product_office365(info_order[6])
             for key in list_key:
@@ -527,6 +553,8 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
                     new_key = key[0]
                     update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
                                            id_key=key[-1])
+                    count_pos = user_dict[callback.message.chat.id]['count_pos']
+                    await state.update_data(count_pos=count_pos - 1)
                     break
         elif info_order[6] == 'office' or info_order[6] == 'windows':
             list_key = get_key_product(category=info_order[6], product=int(info_order[9]))
@@ -549,19 +577,15 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
                 dict_key_office[key].append(item)
 
             if type_give == 'online':
-
-                for key in dict_key_office["list_key_online"]:
-                    for pos in key:
-                        if pos == '✅' and key[1] != '':
-                            count_pos += 1
-                logging.info(f'Осталась ключей {count_pos}')
-
                 for key in dict_key_office["list_key_online"]:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
                                                id_key=key[-1])
+                        count_pos = user_dict[callback.message.chat.id]['count_pos']
+                        await state.update_data(count_pos=count_pos - 1)
                         break
+
             if type_give == 'phone':
                 # print(dict_key_office["list_key_online"])
                 for key in dict_key_office["list_key_phone"]:
@@ -569,6 +593,7 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
                                                id_key=key[-1])
+
                         break
             if type_give == 'linking':
                 # print(dict_key_office["list_key_online"])
@@ -577,6 +602,8 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
                                                id_key=key[-1])
+                        count_pos = user_dict[callback.message.chat.id]['count_pos']
+                        await state.update_data(count_pos=count_pos - 1)
                         break
 
         elif info_order[6] == 'visio' or info_order[6] == 'project':
@@ -598,27 +625,29 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot) -> None:
         text_old_list.insert(-1, '</code>')
         text_new = '\n'.join(text_old_list)
 
-        # f'Вы запрашивали:\n'
-        # f'<code>Ключ для {product}\n'
-        # f'{key_product}\n'
-        # f'Номер заказа: {token_order}</code>\n'
-        # f'отправьте его заказчику',
-        # print(text_new)
-        # key_product_ = new_key
-        # if info_order[6] == 'Office 365':
-        #     key_product_ = new_key.split(':')[2]
         await callback.message.edit_text(text=f'{text_new}',
                                          reply_markup=keyboards_cancel_append_key(id_order=info_order[0]),
                                          parse_mode='html')
-
-        if count_pos == 3:
-            list_user = get_list_users()
-            for user in list_user:
-                # print(user)
-                result = get_telegram_user(user_id=user[0], bot_token=config.tg_bot.token)
-                if 'result' in result:
-                    await bot.send_message(chat_id=int(user[0]),
-                                           text=f'⚠️ Необходимо пополнить остаток {info_order[7]} онлайн активация')
+        category = info_order[6]
+        product = info_order[7]
+        type_give = info_order[8]
+        if (category in ['office', 'windows'] and type_give == 'online') or \
+                (category == 'windows' and type_give == 'linking') or (category == 'Office 365'):
+            user_dict[callback.message.chat.id] = await state.get_data()
+            count_pos = user_dict[callback.message.chat.id]['count_pos']
+            print(count_pos)
+            if count_pos == 3:
+                list_user = get_list_users()
+                for user in list_user:
+                    # print(user)
+                    result = get_telegram_user(user_id=user[0], bot_token=config.tg_bot.token)
+                    if 'result' in result:
+                        if category == 'Office 365':
+                            await bot.send_message(chat_id=int(user[0]),
+                                                   text=f'⚠️ Необходимо пополнить остаток {product}')
+                        else:
+                            await bot.send_message(chat_id=int(user[0]),
+                                                   text=f'⚠️ Необходимо пополнить остаток {product} {type_give} активация')
 
         list_get_key = [info_order[4]]
         list_get_key.append(new_key)
@@ -747,10 +776,55 @@ async def process_hand_keys_product_cancel(callback: CallbackQuery, state: FSMCo
 # <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Отменить продажу] - change_key)">
 # main keyboard -> [Ключ] -> [Отменить]
 @router.callback_query(F.data == 'cancel_key')
-async def process_cancel_keys(callback: CallbackQuery) -> None:
+async def process_cancel_keys(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_cancel_keys: {callback.message.chat.id}')
-    await callback.message.answer(text='Функционал "Отмены выданного ключа" в разработке')
+    # await callback.message.answer(text='Функционал "Отмены выданного ключа" в разработке')
+    await callback.message.answer(text='Пришлите номер заказа, который нужно отменить')
+    await state.set_state(Keys.get_id_order_cancel)
+
+
+@router.message(F.text, StateFilter(Keys.get_id_order_cancel))
+async def process_get_id_order_cancel_keys(message: Message, state: FSMContext) -> None:
+    """
+    Функция реализует замену ключа по ранее выполненному заказу
+    :param message:
+    :param state:
+    :return:
+    """
+    logging.info(f'process_get_id_order_cancel_keys: {message.chat.id}')
+    # получаем информацию о заказе по его токен
+    info_order = get_info_order(message.text)
+    # если такой заказ найден выводим информацию о нем
+    if info_order:
+        # print(info_order)
+        await message.answer(text=f'№ заказa: {info_order[0]}\n'
+                                  f'дата: {info_order[1]}-{info_order[2]}\n'
+                                  f'Менеджер: {info_order[3]}\n'
+                                  f'Ключ: <code>{info_order[4]}</code>\n'
+                                  f'Стоимость: {info_order[5].split(".")[0]} ₽\n'
+                                  f'Категория {info_order[6]} - продукт {info_order[7]}',
+                             parse_mode='html')
+        # получаем текущую дату
+        current_date = datetime.now()
+        # преобразуем ее в строку
+        period_start = current_date.strftime('%m/%d/%y')
+        list_date_start = period_start.split('/')
+        date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
+        today = datetime.now()
+        tomorrow = today - timedelta(days=7)
+        period_finish = tomorrow.strftime('%m/%d/%y')
+        list_date_finish = period_finish.split('/')
+        date_finish = date(int(list_date_finish[2]), int(list_date_finish[0]), int(list_date_finish[1]))
+        list_date_order = info_order[1].split('/')
+        date_order = date(int(list_date_order[2]), int(list_date_order[0]), int(list_date_order[1]))
+        if date_finish <= date_order <= date_start:
+            await message.answer(text='Ключ выдан менне 7 дней назад. Отменить его выдачу?',
+                                 reply_markup=keyboards_cancel_get_key(id_order=info_order[0]))
+        else:
+            await message.answer(text='❌с момента выдачи ключа прошло более 7 дней')
+
 # </editor-fold>
+
 
 
 # <editor-fold desc = "СЕКЦИЯ (main keyboard -> [Ключ] -> [Добавить] - add_key)">
