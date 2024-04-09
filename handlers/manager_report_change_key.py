@@ -192,7 +192,21 @@ async def process_get_stat_select_salesmanager(callback: CallbackQuery, state: F
             if (date_start <= date_order) and (date_order <= date_finish):
                 if order[10] != '':
                     count += 1
-    await callback.message.answer(text=f'Количество замен ключей за выбранный период - {count} шт.')
+    if int(user_dict[callback.message.chat.id]['salesperiod_change']):
+        await callback.message.answer(text=f'<b>Отчет о заменах менеджера за '
+                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
+                                           f'Менеджер {user_name_manager} произвел замен ключей за выбранный'
+                                           f' период - {count} шт.',
+                                      parse_mode='html')
+    else:
+        count_days = (date_finish - date_start).days + 1
+        await callback.message.answer(text=f'<b>Отчет о продажах менеджера за {count_days} дня (дней) c'
+                                           f' {list_date_start[1]}/{list_date_start[0]}/'
+                                           f'{list_date_start[2]} по {list_date_finish[1]}/'
+                                           f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
+                                           f'Менеджер {user_name_manager} произвел замен ключей за выбранный'
+                                           f' период - {count} шт.',
+                                      parse_mode='html')
 
 
 # ОТЧЕТ ЗАМЕНЫ КЛЮЧЕЙ - для всей компании
@@ -236,5 +250,19 @@ async def process_get_stat_select_salescompany(callback: CallbackQuery, state: F
         if (date_start <= date_order) and (date_order <= date_finish):
             if order[10] != '':
                 count += 1
-    await callback.message.answer(text=f'Количество замен ключей за выбранный период - {count} шт.')
+    if int(user_dict[callback.message.chat.id]['salesperiod_change']):
+        await callback.message.answer(text=f'<b>Отчет о заменах ключей компаниией за '
+                                           f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n'
+                                           f'Компания произвела замены ключей за выбранный'
+                                           f' период - {count} шт.',
+                                      parse_mode='html')
+    else:
+        count_days = (date_finish - date_start).days + 1
+        await callback.message.answer(text=f'<b>Отчет о продажах компании за {count_days} дня (дней) c'
+                                           f' {list_date_start[1]}/{list_date_start[0]}/'
+                                           f'{list_date_start[2]} по {list_date_finish[1]}/'
+                                           f'{list_date_finish[0]}/{list_date_finish[2]}:</b>\n'
+                                           f'Компания произвела замены ключей за выбранный'
+                                           f' период - {count} шт.',
+                                      parse_mode='html')
 # </editor-fold>
