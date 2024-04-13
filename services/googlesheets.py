@@ -128,31 +128,6 @@ def append_order(id_order, date, time, username, key, cost, category, product, t
     order_sheet.append_row([id_order, date, time, username, key, cost, category, product, type_give, id_product])
 
 
-def update_row_key_product(category: str, id_product_in_category: int, id_key: int, change: bool = False) -> None:
-    """
-    Функция обновляет значение активации ключа
-    :param category:
-    :param id_product_in_category:
-    :param id_key:
-    :return:
-    """
-    logging.info(f'update_row_key_product')
-    sheet = dict_category[category]
-    values_list = sheet.row_values(id_key+1)[id_product_in_category*7:id_product_in_category*7+7]
-    activate = '❌'
-    if change:
-        activate = '⚠️'
-    if id_product_in_category >= 0:
-        for i, value in enumerate(values_list):
-            if value == '✅':
-                col = i + 7 * id_product_in_category
-                # print(id_key+1, col)
-                sheet.update_cell(id_key+1, col+1, activate)
-                break
-    else:
-        sheet.update_cell(id_key+1, 2, activate)
-
-
 def update_row_key_product_cancel(category: str, key: str) -> None:
     logging.info(f'update_row_key_product_cancel: {key}')
     sheet = dict_category[category]
@@ -170,6 +145,46 @@ def update_row_key_product_cancel(category: str, key: str) -> None:
             if sheet.cell(cell.row, cell.col+1+i).value == '❌':
                 sheet.update_cell(cell.row, cell.col+1+i, '✅')
                 break
+
+
+def update_row_key_product(category: str, id_product_in_category: int, id_key: int, change: bool = False,
+                           token_key: str = 'none') -> None:
+    """
+    Функция обновляет значение активации ключа
+    :param category:
+    :param id_product_in_category:
+    :param id_key:
+    :return:
+    """
+    logging.info(f'update_row_key_product')
+    sheet = dict_category[category]
+    values_list = sheet.row_values(id_key+1)[id_product_in_category*7:id_product_in_category*7+7]
+
+    if change:
+        if category == 'Office 365':
+            value_list = sheet.get_all_values()
+            for i, row_value in enumerate(value_list):
+                if token_key in row_value[0]:
+                    sheet.update_cell(i + 1, 2, '⚠️')
+        else:
+            cell = sheet.find(token_key)
+            # print(cell.row, cell.col)
+            for i in range(7):
+                # print(sheet.cell(cell.row, cell.col+1+i).value)
+                if sheet.cell(cell.row, cell.col + 1 + i).value == '❌':
+                    sheet.update_cell(cell.row, cell.col + 1 + i, '⚠️')
+                    break
+
+    if id_product_in_category >= 0:
+
+        for i, value in enumerate(values_list):
+            if value == '✅':
+                col = i + 7 * id_product_in_category
+                # print(id_key+1, col)
+                sheet.update_cell(id_key+1, col+1, '❌')
+                break
+    else:
+        sheet.update_cell(id_key+1, 2, '❌')
 
 
 def delete_row_order(id_order: str) -> None:

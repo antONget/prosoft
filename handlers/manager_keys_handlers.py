@@ -112,7 +112,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     new_key = key[0]
                     # обновляем значение активации ключа
                     update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                           id_key=key[-1], change=True)
+                                           id_key=key[-1], change=True, token_key=info_order[4])
+                    # update_row_key_product_cancel(category=info_order[6], key=info_order[4])
                     # останавливаем цикл, так как ключ получен
                     break
         # если категория office или windows здесь поиск сложнее так как есть разные способы выдачи
@@ -149,7 +150,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1], change=True)
+                                               id_key=key[-1], change=True, token_key=info_order[4])
+                        # update_row_key_product_cancel(category=info_order[6], key=info_order[4])
                         break
             if type_give == 'phone':
                 # print(dict_key_office["list_key_online"])
@@ -157,7 +159,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1], change=True)
+                                               id_key=key[-1], change=True, token_key=info_order[4])
+                        # update_row_key_product_cancel(category=info_order[6], key=info_order[4])
                         break
             if type_give == 'linking':
                 # print(dict_key_office["list_key_online"])
@@ -165,7 +168,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                     if '✅' in key and key[1] != '':
                         new_key = key[1]
                         update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                               id_key=key[-1], change=True)
+                                               id_key=key[-1], change=True, token_key=info_order[4])
+                        # update_row_key_product_cancel(category=info_order[6], key=info_order[4])
                         break
 
         elif info_order[6] == 'visio' or info_order[6] == 'project':
@@ -174,7 +178,8 @@ async def process_get_id_order(message: Message, state: FSMContext) -> None:
                 if '✅' in key and key[1] != '':
                     new_key = key[1]
                     update_row_key_product(category=info_order[6], id_product_in_category=int(info_order[9]),
-                                           id_key=key[-1], change=True)
+                                           id_key=key[-1], change=True, token_key=info_order[4])
+                    # update_row_key_product_cancel(category=info_order[6], key=info_order[4])
                     break
 
         await message.answer(text=f'Новый ключ: <code>{new_key}</code>', parse_mode='html')
