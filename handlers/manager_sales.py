@@ -7,7 +7,7 @@ from aiogram.types import FSInputFile
 from aiogram.filters.callback_data import CallbackData
 import aiogram_calendar
 
-from module.data_base import get_list_users
+from module.data_base import get_list_users, get_list_notadmins
 from keyboards.keyboard_sales import keyboard_select_period_sales_new, keyboard_select_scale_sales,\
     keyboards_list_product_sales, keyboard_select_scaledetail_sales, keyboard_get_exel, keyboard_report_admin, \
     keyboard_report_manager
@@ -696,11 +696,11 @@ async def process_get_exel(callback: CallbackQuery) -> None:
 
 
 # ПРОДАЖИ - для выбранного менеджера
-async def process_sendler_stat_scheduler(bot: Bot) -> None:
+async def process_sendler_stat_scheduler_admin(bot: Bot) -> None:
     """
     Рассылка отчета о продажах менеджерам
     """
-    logging.info(f'process_sendler_stat_scheduler')
+    logging.info(f'process_sendler_stat_scheduler_admin')
     # обновляем данные словаря
 
     # получаем текущую дату
@@ -754,16 +754,16 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                 give = 'Ручная выдача'
             manager = order[3]
             # если ключа с таким продуктом в словаре еще нет, то создаем его и инициализируем значение ключа 0
-            if manager in dict_order_product.keys():
-                if product in dict_order_product[manager].keys():
-                    if give in dict_order_product[manager][product].keys():
-                        pass
-                    else:
-                        dict_order_product[manager][product][give] = 0
-                else:
-                    dict_order_product[manager][product] = {give: 0}
-            else:
-                dict_order_product[manager] = {product: {give: 0}, 'count': 0}
+            # if manager in dict_order_product.keys():
+            #     if product in dict_order_product[manager].keys():
+            #         if give in dict_order_product[manager][product].keys():
+            #             pass
+            #         else:
+            #             dict_order_product[manager][product][give] = 0
+            #     else:
+            #         dict_order_product[manager][product] = {give: 0}
+            # else:
+            #     dict_order_product[manager] = {product: {give: 0}, 'count': 0}
 
             if 'company' in dict_order_product.keys():
                 if product in dict_order_product['company'].keys():
@@ -780,12 +780,12 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
             count_key = int(len(order[4].split(',')))
             count_key_period += count_key
             # увеличиваем счетчик количество проданных продуктов в словаре
-            dict_order_product[manager][product][give] += count_key
+            # dict_order_product[manager][product][give] += count_key
             dict_order_product['company'][product][give] += count_key
             # увеличиваем сумму выполненных заказов
             count += int(order[5].split('.')[0]) * count_key
             # формируем строку для вывода в сообщении
-            dict_order_product[manager]['count'] += int(order[5].split('.')[0]) * count_key
+            # dict_order_product[manager]['count'] += int(order[5].split('.')[0]) * count_key
             # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
             list_finance_data.append(order[5])
             cost_price += float(order[5].split('/')[1].split()[0]) * count_key
@@ -819,28 +819,182 @@ async def process_sendler_stat_scheduler(bot: Bot) -> None:
                                         f'Чистая прибыль: {net_profit} ₽\n'
                                         f'Количество продаж: {total_order} шт.',
                                    parse_mode='html')
-    list_user = get_list_users()
+    # list_user = get_list_users()
+    #
+    # # количество проданных продуктов
+    #
+    # for manager in dict_order_product.keys():
+    #     total_order = 0
+    #     total_text = ''
+    #     for user in list_user:
+    #         if user[1] == manager:
+    #             for key_product, value_product in dict_order_product[manager].items():
+    #                 total_text += f'<b>{key_product}:</b>\n'
+    #                 if key_product == 'count':
+    #                     continue
+    #                 for key_give, value_give in value_product.items():
+    #                     total_text += f'<i>{key_give}:</i> {value_give}\n'
+    #                     count += 1
+    #                     total_order += value_give
+    #                 total_text += '--------------\n'
+    #             result = get_telegram_user(user_id=int(user[0]), bot_token=config.tg_bot.token)
+    #             if 'result' in result:
+    #                 await bot.send_message(chat_id=int(user[0]),
+    #                                        text=f'<b>Отчет о продажах менеджера {user[1]} за '
+    #                                             f'{list_date_start[1]}/{list_date_start[0]}/'
+    #                                             f'{list_date_start[2]}:</b>\n\n'
+    #                                             f'{total_text}\n'
+    #                                             f'Выполнено заказов на: {dict_order_product[manager]["count"]} ₽\n'
+    #                                             f'Количество продаж: {total_order} шт.',
+    #                                        parse_mode='html')
+
+
+async def process_sendler_stat_scheduler_manager(bot: Bot) -> None:
+    """
+    Рассылка отчета о продажах менеджерам
+    """
+    logging.info(f'process_sendler_stat_scheduler_manager')
+    # обновляем данные словаря
+
+    # получаем текущую дату
+    current_date = datetime.now()
+    # преобразуем ее в строку
+    period_start = current_date.strftime('%m/%d/%y')
+    # получаем дату завтрашнего дня
+    tomorrow = datetime.now() + timedelta(days=1)
+    # преобразуем ее в строку
+    period_finish = tomorrow.strftime('%m/%d/%y')
+    # print(period_start, period_finish)
+    list_date_start = period_start.split('/')
+    date_start = date(int(list_date_start[2]), int(list_date_start[0]), int(list_date_start[1]))
+    list_date_finish = period_finish.split('/')
+    date_finish = date(int(list_date_finish[2]), int(list_date_finish[0]), int(list_date_finish[1]))
+
+    # получаем весь список заказов
+    list_orders = get_list_orders()
+    # инициализируем счетчик стоимости выполненных заказов
+    # count = 0
+
+    # инициализируем словарь для суммирования количества по продуктам
+    dict_order_product = {}
+
+    # список выполненных заказов
+    # list_finance_data = []
+    # list_orders_filter = []
+    # cost_price = 0
+    # net_profit = 0
+    # marginality = 0
+    # количество ключей выданных за период
+    # count_key_period = 0
+    # проходимся по всему списку заказов
+    for order in list_orders[1:]:
+        # разбиваем дату выполнения заказа
+        list_date_order = order[1].split('/')
+        date_order = date(int(list_date_order[2]), int(list_date_order[0]), int(list_date_order[1]))
+        # если дата выполнения заказа находится в периоде для предоставления отчета
+        if (date_start <= date_order) and (date_order <= date_finish):
+            # убираем пробелы слева и справа у категории
+            product_list = order[7].split()
+            product = ' '.join(product_list)
+            give_ = order[8]
+            give = ''
+            if give_ == 'online':
+                give = 'Онлайн активация'
+            elif give_ == 'phone':
+                give = 'Активация по телефону'
+            elif give_ == 'linking':
+                give = 'С привязкой'
+            elif give_ == 'hand':
+                give = 'Ручная выдача'
+            manager = order[3]
+            # если ключа с таким продуктом в словаре еще нет, то создаем его и инициализируем значение ключа 0
+            if manager in dict_order_product.keys():
+                if product in dict_order_product[manager].keys():
+                    if give in dict_order_product[manager][product].keys():
+                        pass
+                    else:
+                        dict_order_product[manager][product][give] = 0
+                else:
+                    dict_order_product[manager][product] = {give: 0}
+            else:
+                dict_order_product[manager] = {product: {give: 0}, 'count': 0}
+
+            # if 'company' in dict_order_product.keys():
+            #     if product in dict_order_product['company'].keys():
+            #         if give in dict_order_product['company'][product].keys():
+            #             pass
+            #         else:
+            #             dict_order_product['company'][product][give] = 0
+            #     else:
+            #         dict_order_product['company'][product] = {give: 0}
+            # else:
+            #     dict_order_product['company'] = {product: {give: 0}}
+
+            # количество ключей в заказе
+            count_key = int(len(order[4].split(',')))
+            # count_key_period += count_key
+            # увеличиваем счетчик количество проданных продуктов в словаре
+            dict_order_product[manager][product][give] += count_key
+            # dict_order_product['company'][product][give] += count_key
+            # увеличиваем сумму выполненных заказов
+            # count += int(order[5].split('.')[0]) * count_key
+            # формируем строку для вывода в сообщении
+            dict_order_product[manager]['count'] += int(order[5].split('.')[0]) * count_key
+            # 650.00 ₽/360.00 ₽/44.62/290.00 ₽
+            # list_finance_data.append(order[5])
+            # cost_price += float(order[5].split('/')[1].split()[0]) * count_key
+            # net_profit += float(order[5].split('/')[3].split()[0]) * count_key
+            # marginality += float(order[5].split('/')[2]) * count_key
+
+            # list_orders_filter.append(order)
+
+    # # инициализируем переменную для сообщения для итоговых данных
+    # total_text = ''
+    # # количество проданных продуктов
+    # total_order = 0
+    # # проходим по сформированному словарю и получаем ключ: продукт и значение: количество проданных продуктов
+    # for key_product, value_product in dict_order_product['company'].items():
+    #     total_text += f'<b>{key_product}:</b>\n'
+    #     for key_give, value_give in value_product.items():
+    #         total_text += f'<i>{key_give}:</i> {value_give}\n'
+    #         total_order += value_give
+    #     total_text += '--------------\n'
+    # list_admins = get_list_admins()
+    # for admin in list_admins:
+    #     result = get_telegram_user(user_id=int(admin[0]), bot_token=config.tg_bot.token)
+    #     if 'result' in result:
+    #         await bot.send_message(chat_id=int(admin[0]),
+    #                                text=f'<b>Отчет о продажах компании за '
+    #                                     f'{list_date_start[1]}/{list_date_start[0]}/{list_date_start[2]}:</b>\n\n'
+    #                                     f'{total_text}\n'
+    #                                     f'Компания выполнила заказов на {count} ₽\n'
+    #                                     f'Себестоимость: {cost_price} ₽\n'
+    #                                     f'Маржинальность: {round(marginality / count_key_period, 2)}%\n'
+    #                                     f'Чистая прибыль: {net_profit} ₽\n'
+    #                                     f'Количество продаж: {total_order} шт.',
+    #                                parse_mode='html')
+    list_user = get_list_notadmins()
 
     # количество проданных продуктов
-
+    print(dict_order_product)
     for manager in dict_order_product.keys():
         total_order = 0
         total_text = ''
         for user in list_user:
             if user[1] == manager:
                 for key_product, value_product in dict_order_product[manager].items():
-                    total_text += f'<b>{key_product}:</b>\n'
                     if key_product == 'count':
                         continue
+                    total_text += f'<b>{key_product}:</b>\n'
                     for key_give, value_give in value_product.items():
                         total_text += f'<i>{key_give}:</i> {value_give}\n'
-                        count += 1
+                        # count += 1
                         total_order += value_give
                     total_text += '--------------\n'
                 result = get_telegram_user(user_id=int(user[0]), bot_token=config.tg_bot.token)
                 if 'result' in result:
                     await bot.send_message(chat_id=int(user[0]),
-                                           text=f'<b>Отчет о продажах менеджера {user[1]} за '
+                                           text=f'<b>Ваш автоматический отчет по продажам за рабочий день '
                                                 f'{list_date_start[1]}/{list_date_start[0]}/'
                                                 f'{list_date_start[2]}:</b>\n\n'
                                                 f'{total_text}\n'

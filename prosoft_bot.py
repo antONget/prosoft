@@ -5,10 +5,10 @@ from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
 from handlers import admin_main_handlers, admin_manager_handlers, admin_rest_keys, manager_statistic_handlers, \
     admin_edit_admin_list, manager_report_change_key, manager_leave_handler, manager_work_handler
-from handlers import user_auth_handler, manager_keys_handlers, manager_sales
+from handlers import user_auth_handler, manager_keys_handlers, manager_sales, manager_keys_complect_handler
 from handlers import other_handlers
 from handlers.admin_rest_keys import process_scheduler
-from handlers.manager_sales import process_sendler_stat_scheduler
+from handlers.manager_sales import process_sendler_stat_scheduler_manager, process_sendler_stat_scheduler_admin
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from middlewares.outer import Middleware_message, Middleware_callback
 from handlers.manager_keys_handlers import router as router_user
@@ -38,7 +38,8 @@ async def main():
     dp = Dispatcher()
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(process_scheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
-    scheduler.add_job(process_sendler_stat_scheduler, 'cron', hour=0, minute=0, second=0, args=(bot,))
+    scheduler.add_job(process_sendler_stat_scheduler_manager, 'cron', hour=20, minute=10, second=0, args=(bot,))
+    scheduler.add_job(process_sendler_stat_scheduler_admin, 'cron', hour=0, minute=0, second=0, args=(bot,))
     scheduler.start()
     # Регистрируем router в диспетчере
     dp.include_router(admin_main_handlers.router)
@@ -47,6 +48,7 @@ async def main():
     dp.include_router(admin_edit_admin_list.router)
     dp.include_router(manager_statistic_handlers.router)
     dp.include_router(manager_keys_handlers.router)
+    dp.include_router(manager_keys_complect_handler.router)
     dp.include_router(manager_sales.router)
     dp.include_router(manager_report_change_key.router)
     dp.include_router(manager_work_handler.router)

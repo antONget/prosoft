@@ -13,7 +13,8 @@ def keyboard_select_action_keys_manager() -> InlineKeyboardMarkup:
     button_2 = InlineKeyboardButton(text='Заменить ключ', callback_data='change_key')
     button_3 = InlineKeyboardButton(text='Отметить продажу', callback_data='hand_key')
     button_4 = InlineKeyboardButton(text='Отменить продажу', callback_data='cancel_key')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4]],)
+    button_5 = InlineKeyboardButton(text='Комплект', callback_data='get_complect')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4], [button_5]],)
     return keyboard
 
 
@@ -28,7 +29,9 @@ def keyboard_select_action_keys_admin() -> InlineKeyboardMarkup:
     button_3 = InlineKeyboardButton(text='Отметить продажу', callback_data='hand_key')
     button_4 = InlineKeyboardButton(text='Отменить продажу', callback_data='cancel_key')
     button_5 = InlineKeyboardButton(text='Пополнить остаток', callback_data='add_key')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4], [button_5]],)
+    button_6 = InlineKeyboardButton(text='Комплект', callback_data='get_complete')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_3], [button_2], [button_4], [button_6],
+                                                     [button_5]],)
     return keyboard
 
 
