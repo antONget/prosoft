@@ -17,6 +17,7 @@ project_sheet = gsheet.worksheet("Ключи Project")
 visio_sheet = gsheet.worksheet("Ключи Visio")
 order_sheet = gsheet.worksheet("Заказы")
 cost_sheet = gsheet.worksheet("Стоимость")
+work_sheet = gsheet.worksheet("Смены")
 
 dict_category = {
     "office": office_sheet,
@@ -46,6 +47,7 @@ def get_list_orders():
     for item in values:
         list_orders.append(item)
     return list_orders
+
 
 def get_key_product(category: str, product: int) -> list:
     logging.info(f'get_key_product')
@@ -121,6 +123,7 @@ def get_cost_product_list() -> list:
             list_cost_product.append([product[0], product[1], product[3], product[4], product[5], product[6]])
     # print(list_cost_product)
     return list_cost_product
+
 
 # добавить значения
 def append_order(id_order, date, time, username, key, cost, category, product, type_give, id_product=-1):
@@ -255,6 +258,35 @@ def set_key_in_sheet(category: str, id_product_in_category: int, id_key: int, se
     for i in range(1, activate + 1):
         sheet.update_cell(row=row, col=col + i, value='✅')
 
+
+def get_list_workday(id_telegram: int, month_work: int) -> list:
+    """
+    Получаем список смен текущего месяца
+    :param id_telegram:
+    :param month_work: месяц для которого получается список смен (0-будущий, 1-текущий)
+    :return:
+    """
+    logging.info(f'get_list_workday')
+    cell = work_sheet.find(str(id_telegram))
+    if cell is not None:
+        if work_sheet.cell(cell.row, 4-month_work).value is not None:
+            return work_sheet.cell(cell.row, 4-month_work).value.split(',')
+        else:
+            return [0]
+    else:
+        return [0]
+
+
+def set_list_workday(id_telegram: int, list_workday: str, username: str, month_work: int) -> None:
+    logging.info(f'set_list_workday')
+    cell = work_sheet.find(str(id_telegram))
+    if cell is not None:
+        work_sheet.update_cell(row=cell.row, col=4-month_work, value=list_workday)
+    else:
+        if month_work == 0:
+            work_sheet.append_row([str(id_telegram), username, 'none', list_workday])
+        else:
+            work_sheet.append_row([str(id_telegram), username, list_workday, 'none'])
 
 
 if __name__ == '__main__':

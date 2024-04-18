@@ -823,7 +823,7 @@ async def process_get_id_order_cancel_keys(message: Message, state: FSMContext) 
         list_date_order = info_order[1].split('/')
         date_order = date(int(list_date_order[2]), int(list_date_order[0]), int(list_date_order[1]))
         if date_finish <= date_order <= date_start:
-            await message.answer(text='Ключ выдан менне 7 дней назад. Отменить его выдачу?',
+            await message.answer(text='Ключ выдан менее 7 дней назад. Отменить его выдачу?',
                                  reply_markup=keyboards_cancel_get_key(id_order=info_order[0]))
         else:
             await message.answer(text='❌с момента выдачи ключа прошло более 7 дней')
