@@ -160,19 +160,30 @@ def set_notadmins(telegram_id):
         sql = db.cursor()
         sql.execute('UPDATE users SET is_admin = ? WHERE telegram_id = ?', (0, telegram_id))
         db.commit()
-#
-#
-# def update_operator():
-#     logging.info(f'update_operator')
-#     sql.execute('UPDATE users SET operator = ?', (0,))
-#     db.commit()
-#
-#
-# def get_operator():
-#     logging.info(f'get_operator')
-#     list_operator = sql.execute('SELECT * FROM users WHERE operator = ?', (1,)).fetchall()
-#     is_operator = [operator for operator in list_operator]
-#     return is_operator
+
+
+def set_start_workday(telegram_id: int) -> None:
+    logging.info(f'set_start_workday')
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE users SET operator = ? WHERE telegram_id = ?', (1, telegram_id,))
+        db.commit()
+
+
+def set_start_workday_all() -> None:
+    logging.info(f'set_start_workday_all')
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE users SET operator = ?', (0,))
+        db.commit()
+
+
+def get_start_workday(telegram_id: int) -> bool:
+    logging.info(f'get_start_workday')
+    with db:
+        sql = db.cursor()
+        list_workday = sql.execute('SELECT operator FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        return bool(list_workday[0])
 
 if __name__ == '__main__':
     db = sqlite3.connect('/Users/antonponomarev/PycharmProjects/PRO_SOFT/database.db', check_same_thread=False, isolation_level='EXCLUSIVE')

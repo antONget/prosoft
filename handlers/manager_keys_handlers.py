@@ -19,7 +19,7 @@ from services.googlesheets import get_list_product, get_key_product, get_key_pro
 from config_data.config import Config, load_config
 from filter.user_filter import check_user
 from filter.admin_filter import check_admin
-from module.data_base import get_list_users, get_list_admins
+from module.data_base import get_list_users, get_list_admins, get_start_workday, set_start_workday
 
 from datetime import datetime, timedelta
 from datetime import date
@@ -486,12 +486,19 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
                                   reply_markup=keyboards_cancel_append_key(id_order=token_order),
                                   parse_mode='html')
     update_row_key_product(category=category, id_product_in_category=id_product_in_category, id_key=id_row_key)
-    list_admin = get_list_admins()
-    for id_admin in list_admin:
-        result = get_telegram_user(user_id=id_admin[0], bot_token=config.tg_bot.token)
-        if 'result' in result:
-            await bot.send_message(chat_id=int(id_admin[0]),
-                                   text=f'✅ Менеджер @{callback.from_user.username} преступил к работе')
+    # проверяем начал ли работу менеджер
+    if not get_start_workday(telegram_id=callback.message.chat.id):
+        # переводим его в статус начал работу, в 00 статус обновится при отправке отчета админам
+        set_start_workday(telegram_id=callback.message.chat.id)
+        # получаем список админов
+        list_admin = get_list_admins()
+        # проходим по всем админам
+        for id_admin in list_admin:
+            # проверка на запуск бота
+            result = get_telegram_user(user_id=id_admin[0], bot_token=config.tg_bot.token)
+            if 'result' in result:
+                await bot.send_message(chat_id=int(id_admin[0]),
+                                       text=f'✅ Менеджер @{callback.from_user.username} преступил к работе')
 
     if (category in ['office', 'windows'] and type_give == 'online') or\
             (category == 'windows' and type_give == 'linking') or (category == 'Office 365'):

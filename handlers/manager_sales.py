@@ -7,7 +7,7 @@ from aiogram.types import FSInputFile
 from aiogram.filters.callback_data import CallbackData
 import aiogram_calendar
 
-from module.data_base import get_list_users, get_list_notadmins
+from module.data_base import get_list_users, get_list_notadmins, set_start_workday_all
 from keyboards.keyboard_sales import keyboard_select_period_sales_new, keyboard_select_scale_sales,\
     keyboards_list_product_sales, keyboard_select_scaledetail_sales, keyboard_get_exel, keyboard_report_admin, \
     keyboard_report_manager
@@ -701,8 +701,8 @@ async def process_sendler_stat_scheduler_admin(bot: Bot) -> None:
     Рассылка отчета о продажах менеджерам
     """
     logging.info(f'process_sendler_stat_scheduler_admin')
-    # обновляем данные словаря
-
+    # обновляем данные БД о начале работы
+    set_start_workday_all()
     # получаем текущую дату
     current_date = datetime.now() - timedelta(days=1)
     # преобразуем ее в строку
