@@ -9,6 +9,7 @@ from handlers import user_auth_handler, manager_keys_handlers, manager_sales, ma
 from handlers import other_handlers
 from handlers.admin_rest_keys import process_scheduler
 from handlers.manager_sales import process_sendler_stat_scheduler_manager, process_sendler_stat_scheduler_admin
+from handlers.manager_work_handler import scheduler_pass_list_workday, scheduler_alert_8, scheduler_alert_20
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from middlewares.outer import Middleware_message, Middleware_callback
 from handlers.manager_keys_handlers import router as router_user
@@ -39,7 +40,10 @@ async def main():
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(process_scheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
     scheduler.add_job(process_sendler_stat_scheduler_manager, 'cron', hour=20, minute=10, second=0, args=(bot,))
-    scheduler.add_job(process_sendler_stat_scheduler_admin, 'cron', hour=0, minute=0, second=0, args=(bot,))
+    scheduler.add_job(process_sendler_stat_scheduler_admin, 'cron', hour=11, minute=25, second=0, args=(bot, ))
+    scheduler.add_job(scheduler_pass_list_workday, 'cron', day=1, hour=0, minute=0, second=0)
+    scheduler.add_job(scheduler_alert_8, 'cron', hour=8, minute=0, second=0, args=(bot, ))
+    scheduler.add_job(scheduler_alert_20, 'cron', hour=20, minute=0, second=0, args=(bot, ))
     scheduler.start()
     # Регистрируем router в диспетчере
     dp.include_router(admin_main_handlers.router)

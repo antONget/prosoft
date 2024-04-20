@@ -9,7 +9,7 @@ config: Config = load_config()
 db = sqlite3.connect('database.db', check_same_thread=False, isolation_level='EXCLUSIVE')
 # sql = db.cursor()
 
-
+# <editor-fold desc = "СЕКЦИЯ (ТАБЛИЦА ПОЛЬЗОВАТЕЛЬ)">
 # СОЗДАНИЕ ТАБЛИЦ
 def create_table_users() -> None:
     """
@@ -184,6 +184,104 @@ def get_start_workday(telegram_id: int) -> bool:
         sql = db.cursor()
         list_workday = sql.execute('SELECT operator FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
         return bool(list_workday[0])
+# </editor-fold>
+
+
+# <editor-fold desc = "СЕКЦИЯ (ТАБЛИЦА ОТПУСКА и СМЕНЫ)">
+# СПИСОК СМЕН и ОТПУСК
+def create_table_workday_leave() -> None:
+    """
+    Создание таблицы верифицированных пользователей
+    :return: None
+    """
+    logging.info("table_users")
+    with db:
+        sql = db.cursor()
+        sql.execute("""CREATE TABLE IF NOT EXISTS work_leave(
+            id INTEGER PRIMARY KEY,
+            telegram_id INTEGER,
+            username TEXT,
+            current TEXT,
+            forward TEXT,
+            leave TEXT
+        )""")
+        db.commit()
+
+
+def add_manager(telegram_id: int, username: str) -> None:
+    logging.info(f'add_manager')
+    with db:
+        sql = db.cursor()
+        sql.execute('SELECT telegram_id FROM work_leave')
+        list_user = [row[0] for row in sql.fetchall()]
+        if int(telegram_id) not in list_user:
+            sql.execute(f'INSERT INTO work_leave (telegram_id, username, current, forward, leave) '
+                        f'VALUES ({telegram_id}, "{username}", "0", "0", "0")')
+            db.commit()
+
+
+def get_list_workday(telegram_id: int, month_work: int):
+    logging.info(f'get_start_workday')
+    with db:
+        sql = db.cursor()
+        if month_work == 1:
+            list_workday = sql.execute('SELECT forward FROM work_leave WHERE telegram_id = ?',
+                                       (telegram_id,)).fetchone()
+        else:
+            list_workday = sql.execute('SELECT current FROM work_leave WHERE telegram_id = ?',
+                                       (telegram_id,)).fetchone()
+        if list_workday is None:
+            return None
+        return list_workday[0].split(',')
+
+
+def get_list_workday_all(month_work: int):
+    logging.info(f'get_start_workday')
+    with db:
+        sql = db.cursor()
+        if month_work == 1:
+            list_workday = sql.execute('SELECT forward FROM work_leave',).fetchall()
+        else:
+            list_workday = sql.execute('SELECT current FROM work_leave',).fetchall()
+    return list_workday
+
+
+def get_list_workday_all_alert(month_work: int):
+    logging.info(f'get_start_workday')
+    with db:
+        sql = db.cursor()
+        if month_work == 1:
+            list_workday = sql.execute('SELECT telegram_id, forward FROM work_leave').fetchall()
+        else:
+            list_workday = sql.execute('SELECT telegram_id, current FROM work_leave').fetchall()
+    return list_workday
+
+def set_list_workday(list_workday: str, month_work: int, telegram_id: int):
+    logging.info(f'set_list_workday')
+    with db:
+        sql = db.cursor()
+        if month_work == 1:
+            sql.execute('UPDATE work_leave SET forward = ? WHERE telegram_id = ?', (list_workday, telegram_id))
+        else:
+            sql.execute('UPDATE work_leave SET current = ? WHERE telegram_id = ?', (list_workday, telegram_id))
+        db.commit()
+
+def change_column():
+    logging.info(f'set_list_workday')
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE work_leave SET current = forward')
+        db.commit()
+
+
+def update_forward():
+    logging.info(f'set_list_workday')
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE work_leave SET forward = ?', ('0',))
+        db.commit()
+# </editor-fold>
+
 
 if __name__ == '__main__':
     db = sqlite3.connect('/Users/antonponomarev/PycharmProjects/PRO_SOFT/database.db', check_same_thread=False, isolation_level='EXCLUSIVE')
