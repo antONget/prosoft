@@ -40,7 +40,7 @@ async def main():
     scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
     scheduler.add_job(process_scheduler, 'cron', hour=20, minute=0, second=0, args=(bot,))
     scheduler.add_job(process_sendler_stat_scheduler_manager, 'cron', hour=20, minute=10, second=0, args=(bot,))
-    scheduler.add_job(process_sendler_stat_scheduler_admin, 'cron', hour=11, minute=25, second=0, args=(bot, ))
+    scheduler.add_job(process_sendler_stat_scheduler_admin, 'cron', hour=0, minute=0, second=0, args=(bot, ))
     scheduler.add_job(scheduler_pass_list_workday, 'cron', day=1, hour=0, minute=0, second=0)
     scheduler.add_job(scheduler_alert_8, 'cron', hour=8, minute=0, second=0, args=(bot, ))
     scheduler.add_job(scheduler_alert_20, 'cron', hour=20, minute=0, second=0, args=(bot, ))
