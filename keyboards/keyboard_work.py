@@ -34,7 +34,7 @@ def keyboards_custom_calendar(num_month: int, num_year: str, month_work: int, wo
     # кнопки для отображения месяца и года
     button_month = InlineKeyboardButton(text=month, callback_data='none')
     button_year = InlineKeyboardButton(text=num_year, callback_data='none')
-    button_all = InlineKeyboardButton(text='📆', callback_data=f'all_work_{month_work}')
+    button_back = InlineKeyboardButton(text='Назад', callback_data=f'work_back')
     # кнопки управления
     if month_work == 1:
         button_pag = InlineKeyboardButton(text='<<<', callback_data='workmonth_0')
@@ -81,6 +81,7 @@ def keyboards_custom_calendar(num_month: int, num_year: str, month_work: int, wo
         kb_builder.row(button_month, button_pag, button_year)
     kb_builder.row(*weekday_)
     kb_builder.row(*week, width=7)
+    kb_builder.row(button_back, width=1)
     return kb_builder.as_markup()
 
 
@@ -96,6 +97,7 @@ def keyboards_custom_calendar_block(num_month: int, num_year: str, month_work: i
     # кнопки для отображения месяца и года
     button_month = InlineKeyboardButton(text=month, callback_data='none')
     button_year = InlineKeyboardButton(text=num_year, callback_data='none')
+    button_back = InlineKeyboardButton(text='Назад', callback_data=f'work_back')
     # кнопки управления
     if month_work == 1:
         button_pag = InlineKeyboardButton(text='<<<', callback_data='workmonth_0')
@@ -139,6 +141,7 @@ def keyboards_custom_calendar_block(num_month: int, num_year: str, month_work: i
         kb_builder.row(button_month, button_pag, button_year)
     kb_builder.row(*weekday_)
     kb_builder.row(*week, width=7)
+    kb_builder.row(button_back, width=1)
     return kb_builder.as_markup()
 
 
@@ -155,7 +158,7 @@ def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work:
     # кнопки для отображения месяца и года
     button_month = InlineKeyboardButton(text=month, callback_data='none')
     button_year = InlineKeyboardButton(text=num_year, callback_data='none')
-    button_all = InlineKeyboardButton(text='📆', callback_data=f'all_work_{month_work}')
+    button_back = InlineKeyboardButton(text='Назад', callback_data=f'work_back')
     # кнопки управления
     if month_work == 1:
         button_pag = InlineKeyboardButton(text='<<<', callback_data='workmonthcompany_0')
@@ -209,7 +212,9 @@ def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work:
         kb_builder.row(button_month, button_pag, button_year)
     kb_builder.row(*weekday_)
     kb_builder.row(*week, width=7)
+    kb_builder.row(button_back, width=1)
     return kb_builder.as_markup()
+
 
 def keyboards_select_time(day: int, list_time: list) -> InlineKeyboardMarkup:
     logging.info("keyboards_cancel_append_key")

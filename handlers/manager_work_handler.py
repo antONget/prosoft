@@ -30,8 +30,8 @@ async def process_select_manager_work(callback: CallbackQuery) -> None:
     create_table_workday_leave()
     add_manager(telegram_id=callback.message.chat.id, username=callback.from_user.username)
     list_username = get_list_users()
-    await callback.message.answer(text='Для кого требуется получить график смен',
-                                  reply_markup=keyboards_list_manager_work(list_manager=list_username))
+    await callback.message.edit_reply_markup(text='Для кого требуется получить график смен',
+                                             reply_markup=keyboards_list_manager_work(list_manager=list_username))
 
 
 @router.callback_query(F.data.startswith('workmanager#'))
@@ -289,9 +289,12 @@ async def process_show_calendar_company(callback: CallbackQuery, state: FSMConte
                                                                                             dict_day_busy=dict_day_busy))
 
 
-@router.callback_query(F.data.startswith('workmonthcompany_'))
-async def process_show_calendar_company(callback: CallbackQuery, state: FSMContext) -> None:
-    logging.info(f'process_change_month: {callback.message.chat.id}')
+@router.callback_query(F.data == 'work_back')
+async def process_back_list_manager(callback: CallbackQuery) -> None:
+    logging.info(f'process_back_list_manager: {callback.message.chat.id}')
+    list_username = get_list_users()
+    await callback.message.edit_reply_markup(text='Для кого требуется получить график смен',
+                                             reply_markup=keyboards_list_manager_work(list_manager=list_username))
 # </editor-fold>
 
 
