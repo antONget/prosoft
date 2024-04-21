@@ -498,7 +498,7 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
             result = get_telegram_user(user_id=id_admin[0], bot_token=config.tg_bot.token)
             if 'result' in result:
                 await bot.send_message(chat_id=int(id_admin[0]),
-                                       text=f'✅ Менеджер @{callback.from_user.username} преступил к работе')
+                                       text=f'✅ Менеджер @{callback.from_user.username} приступил к работе')
 
     if (category in ['office', 'windows'] and type_give == 'online') or\
             (category == 'windows' and type_give == 'linking') or (category == 'Office 365'):
