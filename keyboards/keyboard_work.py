@@ -22,8 +22,8 @@ def keyboards_list_manager_work(list_manager: list):
 
 
 def keyboards_custom_calendar(num_month: int, num_year: str, month_work: int, workday: list,
-                              dict_day_busy: dict = {}) -> InlineKeyboardMarkup:
-    logging.info("keyboards_list_product")
+                              dict_day_busy: dict = {}, dict_busy_manager: dict = {}) -> InlineKeyboardMarkup:
+    logging.info(f"keyboards_list_product: {dict_busy_manager}")
     # список месяцев
     list_month = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -66,7 +66,9 @@ def keyboards_custom_calendar(num_month: int, num_year: str, month_work: int, wo
                     week.append(InlineKeyboardButton(text='🌙', callback_data=f'workday_{day}'))
                 elif str(day) in dict_day_busy.keys() and dict_day_busy[f'{day}'][0] == 1 and \
                         dict_day_busy[f'{day}'][1] == 1:
-                    week.append(InlineKeyboardButton(text='❌', callback_data=f'none'))
+                    list_id = dict_busy_manager[f'{day}']
+                    str_id = str(list_id[0])+','+str(list_id[1])
+                    week.append(InlineKeyboardButton(text='❌', callback_data=f'alert_day_{str_id}'))
                 else:
                     week.append(InlineKeyboardButton(text=str(day), callback_data=f'workday_{day}'))
             else:
@@ -146,8 +148,8 @@ def keyboards_custom_calendar_block(num_month: int, num_year: str, month_work: i
 
 
 def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work: int,
-                                        dict_day_busy: dict = {}) -> InlineKeyboardMarkup:
-    logging.info("keyboards_list_product")
+                                        dict_day_busy: dict = {}, dict_busy_manager: dict = {}) -> InlineKeyboardMarkup:
+    logging.info(f"keyboards_list_product: {dict_busy_manager}")
     # список месяцев
     list_month = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
@@ -187,18 +189,24 @@ def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work:
                 # если заняты все дневные смены, а вечерних недостаточно
                 if str(day) in dict_day_busy.keys() and\
                         dict_day_busy[f'{day}'][0] == 1 and dict_day_busy[f'{day}'][1] == 0:
-                    week.append(InlineKeyboardButton(text='🌙', callback_data=f'none'))
+                    list_id = dict_busy_manager[f'{day}']
+                    str_id = str(list_id[0])
+                    week.append(InlineKeyboardButton(text='☀️', callback_data=f'alert_smena_{str_id}_0'))
                 # если заняты все ночные смены, а дневных недостаточно
                 elif str(day) in dict_day_busy.keys() and \
                         dict_day_busy[f'{day}'][0] == 0 and dict_day_busy[f'{day}'][1] == 1:
-                    week.append(InlineKeyboardButton(text='☀️', callback_data=f'none'))
+                    list_id = dict_busy_manager[f'{day}']
+                    str_id = str(list_id[1])
+                    week.append(InlineKeyboardButton(text='🌙', callback_data=f'alert_smena_{str_id}_1'))
                 # если заняты все дневные смены, а вечерних недостаточно
                 elif str(day) in dict_day_busy.keys() and \
                      dict_day_busy[f'{day}'][0] < 1 and dict_day_busy[f'{day}'][1] < 1:
                     week.append(InlineKeyboardButton(text='⚠️', callback_data=f'none'))
                 elif str(day) in dict_day_busy.keys() and dict_day_busy[f'{day}'][0] == 1 and \
                         dict_day_busy[f'{day}'][1] == 1:
-                    week.append(InlineKeyboardButton(text='✅', callback_data=f'none'))
+                    list_id = dict_busy_manager[f'{day}']
+                    str_id = str(list_id[0]) + ',' + str(list_id[1])
+                    week.append(InlineKeyboardButton(text='✅', callback_data=f'alert_day_{str_id}'))
                 else:
                     week.append(InlineKeyboardButton(text=str(day), callback_data=f'none'))
             else:
@@ -219,11 +227,11 @@ def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work:
 def keyboards_select_time(day: int, list_time: list) -> InlineKeyboardMarkup:
     logging.info("keyboards_cancel_append_key")
     if list_time[0] == 1:
-        button_1 = InlineKeyboardButton(text='❌ 08 - 20', callback_data=f'none')
+        button_1 = InlineKeyboardButton(text='❌ 08 - 20', callback_data=f'alert_smena_{list_time[2]}_0')
     else:
         button_1 = InlineKeyboardButton(text='08 - 20', callback_data=f'time_day_{day}')
     if list_time[1] == 1:
-        button_2 = InlineKeyboardButton(text='❌ 20 - 00', callback_data=f'none')
+        button_2 = InlineKeyboardButton(text='❌ 20 - 00', callback_data=f'alert_smena_{list_time[3]}_1')
     else:
         button_2 = InlineKeyboardButton(text='20 - 00', callback_data=f'time_night_{day}')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]], )

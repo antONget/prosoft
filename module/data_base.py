@@ -112,6 +112,18 @@ def get_user(telegram_id):
         return sql.execute('SELECT username FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
 
 
+def get_user_id(id):
+    """
+    ПОЛЬЗОВАТЕЛЬ - имя пользователя по его id
+    :param id:
+    :return:
+    """
+    logging.info(f'get_user_id')
+    with db:
+        sql = db.cursor()
+        return sql.execute('SELECT username FROM users WHERE id = ?', (id,)).fetchone()
+
+
 def delete_user(telegram_id):
     """
     ПОЛЬЗОВАТЕЛЬ - удалить пользователя
@@ -243,6 +255,17 @@ def get_list_workday_all(month_work: int):
             list_workday = sql.execute('SELECT forward FROM work_leave',).fetchall()
         else:
             list_workday = sql.execute('SELECT current FROM work_leave',).fetchall()
+    return list_workday
+
+
+def get_list_workday_all_manager(month_work: int):
+    logging.info(f'get_start_workday')
+    with db:
+        sql = db.cursor()
+        if month_work == 1:
+            list_workday = sql.execute('SELECT telegram_id, forward FROM work_leave',).fetchall()
+        else:
+            list_workday = sql.execute('SELECT telegram_id, current FROM work_leave',).fetchall()
     return list_workday
 
 
