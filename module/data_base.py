@@ -303,6 +303,14 @@ def update_forward():
         sql = db.cursor()
         sql.execute('UPDATE work_leave SET forward = ?', ('0',))
         db.commit()
+
+
+def update_leave(leave, telegram_id):
+    logging.info(f'set_list_workday')
+    with db:
+        sql = db.cursor()
+        sql.execute('UPDATE work_leave SET leave = ? WHERE telegram_id = ?', (leave, telegram_id, ))
+        db.commit()
 # </editor-fold>
 
 
