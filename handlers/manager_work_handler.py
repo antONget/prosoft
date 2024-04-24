@@ -85,7 +85,7 @@ async def process_select_personal_work(callback: CallbackQuery, state: FSMContex
 
 
 @router.callback_query(F.data.startswith('workday_'))
-async def process_get_report_change_key(callback: CallbackQuery, state: FSMContext) -> None:
+async def process_select_workday(callback: CallbackQuery, state: FSMContext) -> None:
     """
     Выбор даты смены
     :param callback:
@@ -328,6 +328,7 @@ async def process_show_calendar_company(callback: CallbackQuery, state: FSMConte
     if 'workmonthcompany_' in callback.data:
         month_work = int(callback.data.split('_')[1])
     dict_day_busy, dict_busy_manager = await day_is_busy(month_work=month_work)
+    # print(dict_busy_manager)
     # получаем текущую дату для вывода календаря
     current_date = datetime.now()
     current_date_string = current_date.strftime('%d/%m/%Y')
@@ -339,6 +340,18 @@ async def process_show_calendar_company(callback: CallbackQuery, state: FSMConte
                                                                                             month_work=month_work,
                                                                                             dict_day_busy=dict_day_busy,
                                                                                             dict_busy_manager=dict_busy_manager))
+    # dict_busy_manager = telegram_id: int, (forward | current): str
+    dict_manager = {}
+    for workday in dict_busy_manager.keys():
+        for id_manager in dict_busy_manager[workday]:
+            if get_user(id_manager) not in dict_manager.keys() and get_user(id_manager) is not None:
+                dict_manager[get_user(id_manager)] = 1
+            elif get_user(id_manager) in dict_manager.keys():
+                dict_manager[get_user(id_manager)] += 1
+    text = ''
+    for manager in dict_manager.keys():
+        text += f'@{manager[0]} - {dict_manager[manager]} смен(а)\n'
+    await callback.message.answer(text=text)
 
 
 @router.callback_query(F.data == 'work_back')
