@@ -149,7 +149,7 @@ def keyboards_custom_calendar_block(num_month: int, num_year: str, month_work: i
 
 def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work: int,
                                         dict_day_busy: dict = {}, dict_busy_manager: dict = {}) -> InlineKeyboardMarkup:
-    logging.info(f"keyboards_list_product: {dict_busy_manager}")
+    logging.info(f"keyboards_custom_calendar_company: {dict_busy_manager}")
     # список месяцев
     list_month = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
                   'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']

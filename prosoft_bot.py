@@ -14,6 +14,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from middlewares.outer import Middleware_message, Middleware_callback
 from handlers.manager_keys_handlers import router as router_user
 from handlers.manager_sales import router as router_sales
+from handlers.manager_leave_handler import scheduler_leave
 # Инициализируем logger
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ async def main():
     scheduler.add_job(scheduler_alert_8, 'cron', hour=8, minute=0, second=0, args=(bot, ))
     scheduler.add_job(scheduler_alert_20, 'cron', hour=20, minute=0, second=0, args=(bot, ))
     scheduler.add_job(scheduler_reminder_workday, 'cron', day='last fri', hour=10, minute=0, second=0, args=(bot,))
+    scheduler.add_job(scheduler_leave, 'cron', hour=10, minute=0, second=0, args=(bot,))
     scheduler.start()
     # Регистрируем router в диспетчере
     dp.include_router(admin_main_handlers.router)

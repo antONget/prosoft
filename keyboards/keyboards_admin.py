@@ -56,7 +56,7 @@ def keyboards_manager_v1() -> ReplyKeyboardMarkup:
 def keyboard_personal_admin() -> InlineKeyboardMarkup:
     logging.info("keyboard_report_admin")
     button_1 = InlineKeyboardButton(text='Смены', callback_data='personal_work')
-    button_2 = InlineKeyboardButton(text='Отпуск', callback_data='personal_leave')
+    button_2 = InlineKeyboardButton(text='Отпуск', callback_data='personal_leave_main')
     button_3 = InlineKeyboardButton(text='Менеджер', callback_data='personal_manager')
     button_4 = InlineKeyboardButton(text='Администратор', callback_data='personal_admin')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4]],)
@@ -66,6 +66,6 @@ def keyboard_personal_admin() -> InlineKeyboardMarkup:
 def keyboard_personal_manager() -> InlineKeyboardMarkup:
     logging.info("keyboard_report_manager")
     button_1 = InlineKeyboardButton(text='Смены', callback_data='personal_work')
-    button_2 = InlineKeyboardButton(text='Отпуск', callback_data='personal_leave')
+    button_2 = InlineKeyboardButton(text='Отпуск', callback_data='personal_leave_main')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]],)
     return keyboard

@@ -3,6 +3,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import logging
 
 
+def keyboard_main_leave() -> InlineKeyboardMarkup:
+    logging.info("keyboard_select_scale_sales")
+    button_1 = InlineKeyboardButton(text='Выбрать отпуск', callback_data=f'personal_leave')
+    button_2 = InlineKeyboardButton(text='Посмотреть отпуск', callback_data=f'show_leave')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1],[button_2]], )
+    return keyboard
+
+
 def keyboard_send_admin() -> InlineKeyboardMarkup:
     logging.info("keyboard_select_scale_sales")
     button_1 = InlineKeyboardButton(text='Согласовать отпуск', callback_data=f'sendadmin')

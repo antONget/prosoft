@@ -90,7 +90,7 @@ def add_super_admin(id_admin, user_name) -> None:
 def get_list_users() -> list:
     """
     ПОЛЬЗОВАТЕЛЬ - список пользователей верифицированных в боте
-    :return:
+    :return: list(telegram_id:int, username:str)
     """
     logging.info(f'get_list_users')
     with db:
@@ -311,6 +311,14 @@ def update_leave(leave, telegram_id):
         sql = db.cursor()
         sql.execute('UPDATE work_leave SET leave = ? WHERE telegram_id = ?', (leave, telegram_id, ))
         db.commit()
+
+
+def get_leave():
+    logging.info(f'get_leave')
+    with db:
+        sql = db.cursor()
+        list_leave = sql.execute('SELECT telegram_id, leave FROM work_leave').fetchall()
+        return list_leave
 # </editor-fold>
 
 

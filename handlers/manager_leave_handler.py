@@ -6,11 +6,11 @@ from aiogram.fsm.state import State, StatesGroup, default_state
 from aiogram.filters import StateFilter
 import aiogram_calendar
 from keyboards.keyboard_leave import keyboard_send_admin, keyboard_confirm_admin_leave, keyboard_send_change_leave, \
-    keyboard_send_change_leave_confirm
-from module.data_base import get_list_admins, update_leave, get_user
+    keyboard_send_change_leave_confirm, keyboard_main_leave
+from module.data_base import get_list_admins, update_leave, get_user, get_leave, get_list_users
 from config_data.config import Config, load_config
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import requests
 
@@ -34,6 +34,13 @@ def get_telegram_user(user_id, bot_token):
     return response.json()
 
 
+@router.callback_query(F.data == 'personal_leave_main')
+async def process_main_leave(callback: CallbackQuery, state: FSMContext) -> None:
+    logging.info(f'process_main_leave: {callback.message.chat.id}')
+    await callback.message.answer(text='Выберите раздел выбора или просмотра отпуска',
+                                  reply_markup=keyboard_main_leave())
+
+
 @router.callback_query(F.data == 'personal_leave')
 async def process_personal_leave(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_personal_leave: {callback.message.chat.id}')
@@ -47,7 +54,7 @@ async def process_personal_leave(callback: CallbackQuery, state: FSMContext) -> 
     # преобразуем дату в список
     list_date1 = date1.split('/')
     await callback.message.answer(
-        "Выберите дату начала отпуска:                         .",
+        "Выберите дату начала отпуска:",
         reply_markup=await calendar.start_calendar(year=int('20'+list_date1[2]), month=int(list_date1[0]))
     )
     await state.set_state(Leave.period_start)
@@ -63,7 +70,7 @@ async def process_buttons_press_finish(callback: CallbackQuery, state: FSMContex
     # преобразуем дату в список
     list_date1 = date1.split('/')
     await callback.message.answer(
-        "Выберите дату окончания отпуска:                         .",
+        "Выберите дату окончания отпуска:",
         reply_markup=await calendar.start_calendar(year=int('20'+list_date1[2]), month=int(list_date1[0]))
     )
     await state.set_state(Leave.period_finish)
@@ -123,14 +130,21 @@ async def process_confirm_leave(callback: CallbackQuery, bot: Bot, state: FSMCon
     answer_admin = callback.data.split('_')[1]
     id_manager = int(callback.data.split("_")[2])
     user_dict[callback.message.chat.id] = await state.update_data()
+
     if answer_admin == 'confirm':
         await bot.send_message(chat_id=id_manager,
                                text=f'Ваш отпуск согласован')
         leave_manager = f'{user_dict[id_manager]["period_start"]}-{user_dict[id_manager]["period_finish"]}'
         update_leave(leave=leave_manager, telegram_id=id_manager)
+        await callback.message.edit_reply_markup(text='')
+        await callback.message.answer(text=f'Отпуск для {get_user(id_manager)[0]} успешно добавлен')
+
     elif answer_admin == 'cancel':
         await bot.send_message(chat_id=id_manager,
                                text=f'Ваш отпуск отклонен')
+        await callback.message.edit_reply_markup(text='')
+        await callback.message.answer(text=f'Отпуск для {get_user(id_manager)[0]} отклонен')
+
     elif answer_admin == 'other':
         await bot.send_message(chat_id=id_manager,
                                text=f'Предложены другие сроки')
@@ -237,3 +251,39 @@ async def process_confirm_leave_change(callback: CallbackQuery, bot: Bot):
                            text=f'Менеджер @{username_manager} согласился на предложенный отпуск в период с {leave_manager}')
     await callback.message.edit_reply_markup(text='')
     await callback.message.answer(text='Ваш отпуск записан в базу')
+
+
+
+@router.callback_query(F.data == 'show_leave')
+async def process_show_leave(callback: CallbackQuery, bot: Bot):
+    logging.info("process_show_leave")
+    list_leave = get_leave()
+    text = ''
+    for leave in list_leave:
+        if leave != '0':
+            text += f'@{get_user(leave[0])[0]} \nв отпуске {leave[1]}\n'
+    await callback.message.answer(text=text)
+
+
+async def scheduler_leave(bot: Bot):
+    logging.info("scheduler_leave")
+    # получаем текущую дату
+    current_date = datetime.now() + timedelta(days=7)
+    # преобразуем ее в строку
+    date1 = current_date.strftime('%d/%m/%y')
+    list_leave = get_leave()
+    for user in list_leave:
+        # print(user[1].split('-')[0], ' = ', date1)
+        if user[1] != '0':
+            leave_user_start = user[1].split('-')[0]
+            if leave_user_start == date1:
+                # print(leave_user_start, ' = ', date1)
+                username_manager = get_user(user[0])
+                list_user = get_list_users()
+                for user_send in list_user:
+                    result = get_telegram_user(user_id=user_send[0], bot_token=config.tg_bot.token)
+                    if 'result' in result:
+                        await bot.send_message(chat_id=user_send[0],
+                                               text=f'Менеджер @{username_manager[0]} будет находится в отпуске в период'
+                                                    f' {user[1]}')
+
