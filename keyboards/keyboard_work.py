@@ -61,14 +61,14 @@ def keyboards_custom_calendar(num_month: int, num_year: str, month_work: int, wo
             if flag:
                 day += 1
                 if f'{day}/1' in workday:
-                    week.append(InlineKeyboardButton(text='☀️', callback_data=f'workday_{day}'))
+                    week.append(InlineKeyboardButton(text=f'{day}☀️', callback_data=f'workday_{day}'))
                 elif f'{day}/2' in workday:
-                    week.append(InlineKeyboardButton(text='🌙', callback_data=f'workday_{day}'))
+                    week.append(InlineKeyboardButton(text=f'{day}🌙', callback_data=f'workday_{day}'))
                 elif str(day) in dict_day_busy.keys() and dict_day_busy[f'{day}'][0] == 1 and \
                         dict_day_busy[f'{day}'][1] == 1:
                     list_id = dict_busy_manager[f'{day}']
                     str_id = str(list_id[0])+','+str(list_id[1])
-                    week.append(InlineKeyboardButton(text='❌', callback_data=f'alert_day_{str_id}'))
+                    week.append(InlineKeyboardButton(text=f'{day}❌', callback_data=f'alert_day_{str_id}'))
                 else:
                     week.append(InlineKeyboardButton(text=str(day), callback_data=f'workday_{day}'))
             else:
@@ -126,9 +126,9 @@ def keyboards_custom_calendar_block(num_month: int, num_year: str, month_work: i
             if flag:
                 day += 1
                 if f'{day}/1' in workday:
-                    week.append(InlineKeyboardButton(text='☀️', callback_data=f'none'))
+                    week.append(InlineKeyboardButton(text=f'{day}☀️', callback_data=f'none'))
                 elif f'{day}/2' in workday:
-                    week.append(InlineKeyboardButton(text='🌙', callback_data=f'none'))
+                    week.append(InlineKeyboardButton(text=f'{day}🌙', callback_data=f'none'))
                 else:
                     week.append(InlineKeyboardButton(text=str(day), callback_data=f'none'))
             else:
@@ -191,22 +191,22 @@ def keyboards_custom_calendar_company(num_month: int, num_year: str, month_work:
                         dict_day_busy[f'{day}'][0] == 1 and dict_day_busy[f'{day}'][1] == 0:
                     list_id = dict_busy_manager[f'{day}']
                     str_id = str(list_id[0])
-                    week.append(InlineKeyboardButton(text='☀️', callback_data=f'alert_smena_{str_id}_0'))
+                    week.append(InlineKeyboardButton(text=f'{day}☀️', callback_data=f'alert_smena_{str_id}_0'))
                 # если заняты все ночные смены, а дневных недостаточно
                 elif str(day) in dict_day_busy.keys() and \
                         dict_day_busy[f'{day}'][0] == 0 and dict_day_busy[f'{day}'][1] == 1:
                     list_id = dict_busy_manager[f'{day}']
                     str_id = str(list_id[1])
-                    week.append(InlineKeyboardButton(text='🌙', callback_data=f'alert_smena_{str_id}_1'))
+                    week.append(InlineKeyboardButton(text=f'{day}🌙', callback_data=f'alert_smena_{str_id}_1'))
                 # если заняты все дневные смены, а вечерних недостаточно
                 elif str(day) in dict_day_busy.keys() and \
                      dict_day_busy[f'{day}'][0] < 1 and dict_day_busy[f'{day}'][1] < 1:
-                    week.append(InlineKeyboardButton(text='⚠️', callback_data=f'none'))
+                    week.append(InlineKeyboardButton(text=f'{day}⚠️', callback_data=f'none'))
                 elif str(day) in dict_day_busy.keys() and dict_day_busy[f'{day}'][0] == 1 and \
                         dict_day_busy[f'{day}'][1] == 1:
                     list_id = dict_busy_manager[f'{day}']
                     str_id = str(list_id[0]) + ',' + str(list_id[1])
-                    week.append(InlineKeyboardButton(text='✅', callback_data=f'alert_day_{str_id}'))
+                    week.append(InlineKeyboardButton(text=f'{day}✅', callback_data=f'alert_day_{str_id}'))
                 else:
                     week.append(InlineKeyboardButton(text=str(day), callback_data=f'none'))
             else:
