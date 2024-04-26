@@ -419,5 +419,5 @@ async def scheduler_reminder_workday(bot: Bot):
                 await bot.send_message(chat_id=id_manager[0],
                                        text=f'Выберите рабочие смены на следующий месяц')
     if flag:
-        await asyncio.sleep(delay=1 * 10)
+        await asyncio.sleep(delay=30 * 60)
         await scheduler_reminder_workday(bot=bot)
