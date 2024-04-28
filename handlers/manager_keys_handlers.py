@@ -681,6 +681,12 @@ async def process_append_get_key(callback: CallbackQuery, bot: Bot, state: FSMCo
 # КЛЮЧ - [Отметить продажу] - Категория
 @router.callback_query(F.data == 'hand_key')
 async def process_hand_keys(callback: CallbackQuery) -> None:
+    """
+    [Ключ] -> [Отметить продажу]
+    Диалог выбора категории продукта для ручной продажи
+    :param callback: hand_key
+    :return:
+    """
     logging.info(f'process_hand_keys: {callback.message.chat.id}')
     await callback.message.answer(text='Выберите категорию для ручного ввода',
                                   reply_markup=keyboard_select_category_handkeys())
@@ -689,6 +695,12 @@ async def process_hand_keys(callback: CallbackQuery) -> None:
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт
 @router.callback_query(F.data.startswith('handgetproduct_'))
 async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+    Вывод сообщения с выбором продуктом для требуемой категории
+    :param callback: startswith(handgetproduct_)
+    :param state:
+    :return:
+    """
     logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
     category = callback.data.split('_')[1]
     keyboard = 0
@@ -704,23 +716,41 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
         keyboard = keyboard_select_project_handkeys()
     elif category == 'fisic':
         keyboard = keyboard_select_fisic_handkeys()
+    elif category == 'activephone':
+        await state.update_data(category_hand=category)
+        await process_input_get_key_hand_phone(message=callback.message, state=state)
+        return
     await state.update_data(category_hand=category)
     await callback.message.edit_text(text='Выберите продукт:',
                                      reply_markup=keyboard)
 
 
 # КЛЮЧ - [Ручной ввод] - Физический продукт - Продукт - Указать количество
-async def process_input_fisic(message: Message, state: FSMContext):
+async def process_input_fisic(message: Message, state: FSMContext) -> None:
+    """
+    [КЛЮЧ] - [Отметить продажу] - [Физический продукт] - Продукт - Указать количество
+    :param message:
+    :param state:
+    :return:
+    """
     logging.info(f'process_input_fisic: {message.chat.id}')
     user_dict[message.chat.id] = await state.get_data()
     product_hand = user_dict[message.chat.id]['product_hand']
-    await message.answer(text=f'Укажите количество выдаваемого продукта {product_hand}')
+    await message.answer(text=f'Укажите количество выдаваемого продукта {product_hand}',
+                         reply_markup=keyboard_cancel_hand_key())
     await state.set_state(Keys.get_count_hand)
 
 
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавление физического продукта
 @router.message(StateFilter(Keys.get_count_hand), lambda x: x.text.isdigit() and 1 <= int(x.text))
 async def process_hand_set_product(message: Message, state: FSMContext) -> None:
+    """
+    [КЛЮЧ] - [Отметить продажу] - [Физический продукт] - Добавление физического продукта в таблицу продаж
+    Проверка на ввод пользователем числа больше или равное 1 (единице)
+    :param message:
+    :param state:
+    :return:
+    """
     logging.info(f'process_hand_set_product: {message.chat.id}')
     user_dict[message.chat.id] = await state.get_data()
     token_order = str(token_urlsafe(8))
@@ -744,12 +774,22 @@ async def process_hand_set_product(message: Message, state: FSMContext) -> None:
 # КЛЮЧ - [Ручной ввод] - Категория - Продукт - Добавить ключ
 @router.callback_query(F.data.startswith('handgetkey'))
 async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+    [КЛЮЧ] - [Отметить продажу] - Категория - Продукт - Добавить ключ / Указать количество(для физического продукта)
+    Функция получает финансовые показатели по выбранному продукту,
+     формирует строку для записи в таблицу заказов
+     Если выбран "Физический продукт", то переходим в функцию ввода количества продуктов
+     иначе просим пользователя прислать ключ продукта, для занесения в таблицу заказов
+    :param callback: startswith('handgetkey')
+    :param state:
+    :return:
+    """
     logging.info(f'process_hand_keys_product: {callback.message.chat.id}')
     # category = callback.data.split('#')[1]
     product = callback.data.split('#')[1]
     # print(product, callback.message)
     cost_hand_list = get_values_hand_product(product)
-    print(cost_hand_list)
+    # print(cost_hand_list)
     cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     await state.update_data(cost_hand=cost_hand)
     await state.update_data(product_hand=product)
@@ -764,6 +804,13 @@ async def process_hand_keys_product(callback: CallbackQuery, state: FSMContext) 
 
 @router.message(F.text, StateFilter(Keys.get_key_hand))
 async def process_input_get_key_hand(message: Message, state: FSMContext):
+    """
+    [КЛЮЧ] - [Отметить продажу] - [Выбранная категория (не физический продукт)]
+     - Добавление продукта в таблицу продаж
+    :param message:
+    :param state:
+    :return:
+    """
     logging.info(f'process_input_get_key_hand: {message.chat.id}')
     user_dict[message.chat.id] = await state.get_data()
     token_order = str(token_urlsafe(8))
@@ -783,8 +830,45 @@ async def process_input_get_key_hand(message: Message, state: FSMContext):
     await state.set_state(default_state)
 
 
+async def process_input_get_key_hand_phone(message: Message, state: FSMContext):
+    """
+    [КЛЮЧ] - [Отметить продажу] - [Выбранная категория (не физический продукт)]
+     - Добавление продукта в таблицу продаж
+    :param message:
+    :param state:
+    :return:
+    """
+    logging.info(f'process_input_get_key_hand: {message.chat.id}')
+    user_dict[message.chat.id] = await state.get_data()
+    token_order = str(token_urlsafe(8))
+    current_date = datetime.now()
+    current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
+    cost_hand_list = get_values_hand_product('Активация ключа по телефону')
+    # print(cost_hand_list)
+    cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
+    # await state.update_data(cost_hand=cost_hand)
+    append_order(id_order=token_order,
+                 date=current_date_string.split()[0],
+                 time=current_date_string.split()[1],
+                 username=message.chat.username,
+                 key='active_phone',
+                 cost=cost_hand,
+                 category=user_dict[message.chat.id]['category_hand'],
+                 product='Активация ключа по телефону',
+                 type_give='hand',
+                 id_product='-')
+    await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    await state.set_state(default_state)
+
+
 @router.callback_query(F.data == 'cancel_hand_key')
 async def process_hand_keys_product_cancel(callback: CallbackQuery, state: FSMContext) -> None:
+    """
+    Отмена выдачи ключа, на этапе добавления ключа или ввода количества для физического ключа
+    :param callback:
+    :param state:
+    :return:
+    """
     logging.info(f'process_hand_keys_product_cancel: {callback.message.chat.id}')
     await callback.message.answer('Добавление ключа вручную отменено')
     await state.set_state(default_state)

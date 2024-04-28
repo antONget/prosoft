@@ -61,24 +61,25 @@ def keyboards_list_type_windows(category: str, product: int):
     return keyboard
 
 
-def keyboards_cancel_append_key(id_order: str):
-    logging.info("keyboards_cancel_append_key")
-    button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'completecancel_get_key#{id_order}')
-    button_2 = InlineKeyboardButton(text='Выдать ещё один ключ', callback_data=f'completeappend_get_key#{id_order}')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]], )
-    return keyboard
+# def keyboards_cancel_append_key(id_order: str):
+#     logging.info("keyboards_cancel_append_key")
+#     button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'completecancel_get_key#{id_order}')
+#     button_2 = InlineKeyboardButton(text='Выдать ещё один ключ', callback_data=f'completeappend_get_key#{id_order}')
+#     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]], )
+#     return keyboard
 
 
-def keyboards_cancel_get_key(id_order: str):
-    logging.info("keyboards_cancel_get_key")
-    button_1 = InlineKeyboardButton(text='Отменить выдачу ключа', callback_data=f'completecancel_get_key#{id_order}')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]], )
-    return keyboard
+# def keyboards_cancel_get_key(id_order: str):
+#     logging.info("keyboards_cancel_get_key")
+#     button_1 = InlineKeyboardButton(text='Отменить выдачу ключа', callback_data=f'completecancel_get_key#{id_order}')
+#     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]], )
+#     return keyboard
 
 
 def keyboards_sale_complete():
     logging.info("keyboards_sale_complete")
     button_1 = InlineKeyboardButton(text='Выдать комплект со скидкой -15%', callback_data=f'completesale_15')
     button_2 = InlineKeyboardButton(text='Выдать комплект без скидки', callback_data=f'completesale_0')
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2]], )
+    button_3 = InlineKeyboardButton(text='Отменить выдачу комплекта ключей', callback_data=f'completesale_cancel')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], ], )
     return keyboard

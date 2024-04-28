@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from keyboards.keyboard_key_complect import keyboard_select_category_keys, keyboards_list_product, \
     keyboards_list_type_office, keyboards_list_type_windows, keyboards_sale_complete
 from services.googlesheets import get_list_product, get_key_product, get_cost_product, get_key_product_office365, \
-    update_row_key_product, append_order
+    update_row_key_product, append_order, update_row_key_product_cancel
 from module.data_base import get_list_users
 from config_data.config import Config, load_config
 
@@ -358,6 +358,7 @@ async def process_select_sale_complete(callback: CallbackQuery) -> None:
     await callback.message.answer(text='Выберите скидку для комплекта ключей',
                                   reply_markup=keyboards_sale_complete())
 
+
 @router.callback_query(F.data.startswith('completesale_'))
 async def process_select_product(callback: CallbackQuery, state: FSMContext) -> None:
     logging.info(f'process_select_product: {callback.message.chat.id} ')
@@ -390,18 +391,28 @@ async def process_select_product(callback: CallbackQuery, state: FSMContext) -> 
         # marginality += (int(key[2].split('/')[1].split('.')[0]) / (price_ * sale))
         # чистая прибыль
         net_profit += (price_ * sale - float(key[2].split('/')[1].split('.')[0]))
-
-    marg = round(net_profit / price * 100, 2)
-    cost = f'{price} ₽/{cost_price} ₽/{marg}/{net_profit} ₽'
-    await callback.message.answer(text=f'Вы запрашивали комплект ключей:\n'
-                                       f'<code>Номер заказа: {token_order}\n'
-                                       f'{text}</code>', parse_mode='html')
-    key_product = '$'.join(key_list)
-    append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
-                 username=callback.from_user.username, key=key_product, cost=cost, category='Complect',
-                 product='Complect',
-                 type_give='complete', id_product='0')
-    user_dict[callback.message.chat.id]['complect_key'] = []
+    if callback.data.split('_')[1] != 'cancel':
+        marg = round(net_profit / price * 100, 2)
+        cost = f'{price} ₽/{cost_price} ₽/{marg}/{net_profit} ₽'
+        await callback.message.answer(text=f'Вы запрашивали комплект ключей:\n'
+                                           f'<code>Номер заказа: {token_order}\n'
+                                           f'{text}</code>', parse_mode='html')
+        key_product = '$'.join(key_list)
+        append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
+                     username=callback.from_user.username, key=key_product, cost=cost, category='Complect',
+                     product='Complect',
+                     type_give='complete', id_product='0')
+        user_dict[callback.message.chat.id]['complect_key'] = []
+    else:
+        for key_item in comlect:
+            if key_item[0] == 'Office 365':
+                update_row_key_product_cancel(category='Office 365', key=key_item[1])
+            else:
+                category = key_item[0].split()[0].lower()
+                update_row_key_product_cancel(category=category, key=key_item[1])
+        await callback.message.answer(text=f'Запрашиваемый комплект ключей:\n'
+                                           f'<code>Номер заказа: {token_order}\n'
+                                           f'{text}</code>\nОтменен', parse_mode='html')
 # @router.callback_query(F.data.startswith('completecancel_get_key'))
 # async def process_cancel_get_key(callback: CallbackQuery) -> None:
 #     logging.info(f'process_cancel_get_key: {callback.message.chat.id}')

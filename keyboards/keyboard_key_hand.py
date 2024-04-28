@@ -15,8 +15,9 @@ def keyboard_select_category_handkeys() -> None:
     button_4 = InlineKeyboardButton(text='Ключ Visio', callback_data='handgetproduct_visio')
     button_5 = InlineKeyboardButton(text='Ключ Project', callback_data='handgetproduct_project')
     button_6 = InlineKeyboardButton(text='Физический продукт', callback_data='handgetproduct_fisic')
+    button_7 = InlineKeyboardButton(text='Активация ключа по телефону', callback_data='handgetproduct_activephone')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5],
-                                                     [button_6],])
+                                                     [button_6], [button_7]])
     return keyboard
 
 
