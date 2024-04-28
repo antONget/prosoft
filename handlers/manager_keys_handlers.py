@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
@@ -858,6 +860,7 @@ async def process_input_get_key_hand_phone(message: Message, state: FSMContext):
                  product='Активация ключа по телефону',
                  type_give='hand',
                  id_product='-')
+    await asyncio.sleep(2)
     await message.answer(text=f'Заказ добавлен в таблицу',
                          reply_markup=keyboard_cancel_hand_key_phone(id_order=token_order))
     await state.set_state(default_state)
