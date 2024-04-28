@@ -9,7 +9,8 @@ from keyboards.keyboards_keys import keyboard_select_action_keys_manager, keyboa
     keyboards_list_type_windows, keyboards_list_type_office, keyboards_cancel_append_key, keyboards_cancel_get_key
 from keyboards.keyboard_key_hand import keyboard_select_category_handkeys, keyboard_select_office_handkeys, \
     keyboard_select_windows_handkeys, keyboard_select_server_handkeys, keyboard_select_visio_handkeys, \
-    keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys
+    keyboard_select_project_handkeys, keyboard_cancel_hand_key, keyboard_select_fisic_handkeys, \
+    keyboard_cancel_hand_key_phone
 from keyboards.keyboard_admin_add_keys import keyboard_select_category_set_keys, keyboards_list_product_set_keys, \
     keyboards_list_type_office_set_keys, keyboards_list_type_windows_set_keys, keyboards_add_more_keys
 from services.googlesheets import get_list_product, get_key_product, get_key_product_office365, append_order,\
@@ -857,8 +858,17 @@ async def process_input_get_key_hand_phone(message: Message, state: FSMContext):
                  product='Активация ключа по телефону',
                  type_give='hand',
                  id_product='-')
-    await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    await message.answer(text=f'Заказ добавлен в таблицу',
+                         reply_markup=keyboard_cancel_hand_key_phone(id_order=token_order))
     await state.set_state(default_state)
+
+
+@router.callback_query(F.data.startswith('cancelsetphone_'))
+async def cancel_key_hand_phone(callback: CallbackQuery):
+    logging.info(f'cancel_key_hand_phone: {callback.message.chat.id}')
+    id_order = callback.data.split('_')[1]
+    delete_row_order(id_order=id_order)
+    await callback.message.answer(text='Добавление заказа в таблицу отменено')
 
 
 @router.callback_query(F.data == 'cancel_hand_key')

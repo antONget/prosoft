@@ -116,6 +116,7 @@ def keyboard_select_fisic_handkeys() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1], [button_2], [button_3], [button_4], [button_5]],)
     return keyboard
 
+
 def keyboard_cancel_hand_key() -> InlineKeyboardMarkup:
     """
     КЛЮЧ - [Ручной ввод] - Категории - Project - отмена добавления ключа
@@ -123,5 +124,16 @@ def keyboard_cancel_hand_key() -> InlineKeyboardMarkup:
     """
     logging.info("keyboard_cancel_hand_key")
     button_1 = InlineKeyboardButton(text='Отмена', callback_data='cancel_hand_key')
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
+    return keyboard
+
+
+def keyboard_cancel_hand_key_phone(id_order) -> InlineKeyboardMarkup:
+    """
+    КЛЮЧ - [Ручной ввод] - Категории - Активация по телефону - отмена добавления ключа
+    :return:
+    """
+    logging.info("keyboard_cancel_hand_key")
+    button_1 = InlineKeyboardButton(text='Отмена', callback_data=f'cancelsetphone_{id_order}')
     keyboard = InlineKeyboardMarkup(inline_keyboard=[[button_1]],)
     return keyboard
