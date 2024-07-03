@@ -468,6 +468,22 @@ async def process_select_key_visio_and_project(callback: CallbackQuery, category
 async def get_key_product_finish(callback: CallbackQuery, category: str, product: str, key_product: str,
                                  id_row_key: int, cost: list, type_give: str, state: FSMContext, bot: Bot,
                                  id_product_in_category: int = -1) -> None:
+    """
+    Функция выдает запрошенный ключ, заносит заказ в таблицу.
+    Проверяет остаток ключей и предупреждает о низком значении.
+    Информирует администраторов о начале работы менеджеров.
+    :param callback:
+    :param category:
+    :param product:
+    :param key_product:
+    :param id_row_key:
+    :param cost:
+    :param type_give:
+    :param state:
+    :param bot:
+    :param id_product_in_category:
+    :return:
+    """
     logging.info(f'get_key_product_finish: {callback.message.chat.id}')
     token_order = str(token_urlsafe(8))
     current_date = datetime.now()
@@ -475,9 +491,10 @@ async def get_key_product_finish(callback: CallbackQuery, category: str, product
     product = ' '.join(product_list)
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
     cost = '/'.join([cost[1], cost[0], cost[2], cost[3]])
-    append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
-                 username=callback.from_user.username, key=key_product, cost=cost, category=category, product=product,
-                 type_give=type_give, id_product=id_product_in_category)
+    if callback.message.chat.id != 6392664243:
+        append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
+                     username=callback.from_user.username, key=key_product, cost=cost, category=category, product=product,
+                     type_give=type_give, id_product=id_product_in_category)
     # key_product_ = key_product
     # if category == 'Office 365':
     #     key_product_ = key_product.split(':')[2]
@@ -760,17 +777,18 @@ async def process_hand_set_product(message: Message, state: FSMContext) -> None:
     current_date = datetime.now()
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
     count_key = ','.join(['физический продукт'] * int(message.text))
-    append_order(id_order=token_order,
-                 date=current_date_string.split()[0],
-                 time=current_date_string.split()[1],
-                 username=message.chat.username,
-                 key=count_key,
-                 cost=user_dict[message.chat.id]['cost_hand'],
-                 category=user_dict[message.chat.id]['category_hand'],
-                 product=user_dict[message.chat.id]['product_hand'],
-                 type_give='hand',
-                 id_product='-')
-    await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    if message.chat.id != 6392664243:
+        append_order(id_order=token_order,
+                     date=current_date_string.split()[0],
+                     time=current_date_string.split()[1],
+                     username=message.chat.username,
+                     key=count_key,
+                     cost=user_dict[message.chat.id]['cost_hand'],
+                     category=user_dict[message.chat.id]['category_hand'],
+                     product=user_dict[message.chat.id]['product_hand'],
+                     type_give='hand',
+                     id_product='-')
+        await message.answer(text=f'Ключ добавлен в таблицу заказов')
     await state.set_state(default_state)
 
 
@@ -819,17 +837,18 @@ async def process_input_get_key_hand(message: Message, state: FSMContext):
     token_order = str(token_urlsafe(8))
     current_date = datetime.now()
     current_date_string = current_date.strftime('%m/%d/%y %H:%M:%S')
-    append_order(id_order=token_order,
-                 date=current_date_string.split()[0],
-                 time=current_date_string.split()[1],
-                 username=message.from_user.username,
-                 key=message.text,
-                 cost=user_dict[message.chat.id]['cost_hand'],
-                 category=user_dict[message.chat.id]['category_hand'],
-                 product=user_dict[message.chat.id]['product_hand'],
-                 type_give='hand',
-                 id_product='-')
-    await message.answer(text=f'Ключ добавлен в таблицу заказов')
+    if message.chat.id != 6392664243:
+        append_order(id_order=token_order,
+                     date=current_date_string.split()[0],
+                     time=current_date_string.split()[1],
+                     username=message.from_user.username,
+                     key=message.text,
+                     cost=user_dict[message.chat.id]['cost_hand'],
+                     category=user_dict[message.chat.id]['category_hand'],
+                     product=user_dict[message.chat.id]['product_hand'],
+                     type_give='hand',
+                     id_product='-')
+        await message.answer(text=f'Ключ добавлен в таблицу заказов')
     await state.set_state(default_state)
 
 
@@ -850,19 +869,20 @@ async def process_input_get_key_hand_phone(message: Message, state: FSMContext):
     # print(cost_hand_list)
     cost_hand = f'{cost_hand_list[1]}/{cost_hand_list[0]}/{cost_hand_list[2]}/{cost_hand_list[3]}'
     # await state.update_data(cost_hand=cost_hand)
-    append_order(id_order=token_order,
-                 date=current_date_string.split()[0],
-                 time=current_date_string.split()[1],
-                 username=message.chat.username,
-                 key='active_phone',
-                 cost=cost_hand,
-                 category=user_dict[message.chat.id]['category_hand'],
-                 product='Активация ключа по телефону',
-                 type_give='hand',
-                 id_product='-')
-    await asyncio.sleep(2)
-    await message.answer(text=f'Заказ добавлен в таблицу',
-                         reply_markup=keyboard_cancel_hand_key_phone(id_order=token_order))
+    if message.chat.id != 6392664243:
+        append_order(id_order=token_order,
+                     date=current_date_string.split()[0],
+                     time=current_date_string.split()[1],
+                     username=message.chat.username,
+                     key='active_phone',
+                     cost=cost_hand,
+                     category=user_dict[message.chat.id]['category_hand'],
+                     product='Активация ключа по телефону',
+                     type_give='hand',
+                     id_product='-')
+        await asyncio.sleep(2)
+        await message.answer(text=f'Заказ добавлен в таблицу',
+                             reply_markup=keyboard_cancel_hand_key_phone(id_order=token_order))
     await state.set_state(default_state)
 
 

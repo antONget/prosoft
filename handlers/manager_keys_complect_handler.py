@@ -398,10 +398,11 @@ async def process_select_product(callback: CallbackQuery, state: FSMContext) -> 
                                            f'<code>Номер заказа: {token_order}\n'
                                            f'{text}</code>', parse_mode='html')
         key_product = '$'.join(key_list)
-        append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
-                     username=callback.from_user.username, key=key_product, cost=cost, category='Complect',
-                     product='Complect',
-                     type_give='complete', id_product='0')
+        if callback.message.chat.id != 6392664243:
+            append_order(id_order=token_order, date=current_date_string.split()[0], time=current_date_string.split()[1],
+                         username=callback.from_user.username, key=key_product, cost=cost, category='Complect',
+                         product='Complect',
+                         type_give='complete', id_product='0')
         user_dict[callback.message.chat.id]['complect_key'] = []
     else:
         for key_item in comlect:
