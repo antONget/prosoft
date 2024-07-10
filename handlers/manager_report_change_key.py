@@ -20,10 +20,10 @@ import logging
 router = Router()
 
 
-class Sales(StatesGroup):
-    period = State()
-    period_start = State()
-    period_finish = State()
+class ChangeSales(StatesGroup):
+    change_period = State()
+    change_period_start = State()
+    change_period_finish = State()
 
 
 user_dict = {}
@@ -34,7 +34,7 @@ user_dict = {}
 async def process_get_report_change_key(callback: CallbackQuery) -> None:
     logging.info(f'process_get_report_change_key: {callback.message.chat.id}')
     # await callback.message.answer(text='Функционал "Отчет о заменах ключей" в разработке')
-    await callback.message.answer(text="Выберите период для получения отчета о продажах",
+    await callback.message.answer(text="Выберите период для получения отчета о заменах",
                                   reply_markup=keyboard_select_period_change_key())
 
 
@@ -53,7 +53,7 @@ async def process_buttons_press_start(callback: CallbackQuery, state: FSMContext
         "Выберите начало периода, для получения отчета о заменах ключей:",
         reply_markup=await calendar.start_calendar(year=int('20' + list_date1[2]), month=int(list_date1[0]))
     )
-    await state.set_state(Sales.period_start)
+    await state.set_state(ChangeSales.change_period_start)
 
 
 async def process_buttons_press_finish(callback: CallbackQuery, state: FSMContext):
@@ -69,10 +69,10 @@ async def process_buttons_press_finish(callback: CallbackQuery, state: FSMContex
         "Выберите конец периода, для получения отчета о заменах ключей:",
         reply_markup=await calendar.start_calendar(year=int('20' + list_date1[2]), month=int(list_date1[0]))
     )
-    await state.set_state(Sales.period_finish)
+    await state.set_state(ChangeSales.change_period_finish)
 
 
-@router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(Sales.period_start))
+@router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(ChangeSales.change_period_start))
 async def process_simple_calendar_start(callback_query: CallbackQuery, callback_data: CallbackData,
                                         state: FSMContext):
     calendar = aiogram_calendar.SimpleCalendar(show_alerts=True)
@@ -85,7 +85,7 @@ async def process_simple_calendar_start(callback_query: CallbackQuery, callback_
         await process_buttons_press_finish(callback_query, state=state)
 
 
-@router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(Sales.period_finish))
+@router.callback_query(aiogram_calendar.SimpleCalendarCallback.filter(), StateFilter(ChangeSales.change_period_finish))
 async def process_simple_calendar_finish(callback: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     calendar = aiogram_calendar.SimpleCalendar(show_alerts=True)
     calendar.set_dates_range(datetime(2022, 1, 1), datetime(2025, 12, 31))
@@ -118,11 +118,11 @@ async def process_get_changesscale(callback: CallbackQuery, state: FSMContext) -
     logging.info(f'process_get_changesscale: {callback.message.chat.id}')
     await state.update_data(salesperiod_change=callback.data.split('_')[1])
     if check_admin(callback.message.chat.id):
-        await callback.message.answer(text='Получить отчет о продажах',
+        await callback.message.answer(text='Получить отчет о заменах',
                                       reply_markup=keyboard_select_scale_change_key())
     elif check_user(callback.message.chat.id):
         list_username = get_list_users()
-        await callback.message.answer(text='Для кого требуется получить отчет о продажах',
+        await callback.message.answer(text='Для кого требуется получить отчет о заменах',
                                       reply_markup=keyboards_list_product_change_key(list_manager=list_username))
 
 
@@ -136,7 +136,7 @@ async def process_get_stat_salesmanager(callback: CallbackQuery) -> None:
     """
     logging.info(f'process_get_stat_salesmanager: {callback.message.chat.id}')
     list_username = get_list_users()
-    await callback.message.answer(text='Для кого требуется получить отчет о продажах',
+    await callback.message.answer(text='Для кого требуется получить отчет о заменах',
                                   reply_markup=keyboards_list_product_change_key(list_manager=list_username))
 
 
